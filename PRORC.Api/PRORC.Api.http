@@ -1,0 +1,6 @@
+@PRORC.Api_HostAddress = http://localhost:5288
+
+GET {{PRORC.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

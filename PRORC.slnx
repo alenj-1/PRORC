@@ -1,0 +1,54 @@
+<Solution>
+  <Folder Name="/API/">
+    <Project Path="PRORC.Api/PRORC.Api.csproj" />
+  </Folder>
+  <Folder Name="/Apps/">
+    <Project Path="PRORC.Desktop/PRORC.Desktop.csproj" />
+    <Project Path="PRORC.Web/PRORC.Web.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
+  <Folder Name="/Apps/PRORC.Mobile/">
+    <File Path="PRORC.Mobile/app.json" />
+    <File Path="PRORC.Mobile/app/(tabs)/index.tsx" />
+    <File Path="PRORC.Mobile/package.json" />
+  </Folder>
+  <Folder Name="/Apps/PRORC.Mobile/src/" />
+  <Folder Name="/Apps/PRORC.Mobile/src/Components/">
+    <File Path="PRORC.Mobile/src/Components/MenuItemCard.js" />
+    <File Path="PRORC.Mobile/src/Components/Navbar.js" />
+    <File Path="PRORC.Mobile/src/Components/ReservationForm.js" />
+    <File Path="PRORC.Mobile/src/Components/RestaurantCard.js" />
+    <File Path="PRORC.Mobile/src/Components/ReviewCard.js" />
+  </Folder>
+  <Folder Name="/Apps/PRORC.Mobile/src/Navigation/">
+    <File Path="PRORC.Mobile/src/Navigation/AppNavigator.js" />
+  </Folder>
+  <Folder Name="/Apps/PRORC.Mobile/src/Screens/">
+    <File Path="PRORC.Mobile/src/Screens/HomeScreen.js" />
+    <File Path="PRORC.Mobile/src/Screens/LoginScreen.js" />
+    <File Path="PRORC.Mobile/src/Screens/OrderScreen.js" />
+    <File Path="PRORC.Mobile/src/Screens/ProfileScreen.js" />
+    <File Path="PRORC.Mobile/src/Screens/ReservationScreen.js" />
+  </Folder>
+  <Folder Name="/Apps/PRORC.Mobile/src/Services/">
+    <File Path="PRORC.Mobile/src/Services/ApiClient.js" />
+    <File Path="PRORC.Mobile/src/Services/AuthService.js" />
+    <File Path="PRORC.Mobile/src/Services/OrderService.js" />
+    <File Path="PRORC.Mobile/src/Services/ReservationService.js" />
+    <File Path="PRORC.Mobile/src/Services/RestaurantService.js" />
+  </Folder>
+  <Folder Name="/Core/">
+    <Project Path="PRORC.Application/PRORC.Application.csproj" Id="03c245a6-85a5-4914-8af8-e6121686047b" />
+    <Project Path="PRORC.Domain/PRORC.Domain.csproj" Id="ac100d42-649a-4984-b01c-48685ec131cc" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="PRORC.Infrastructure/PRORC.Infrastructure.csproj" Id="2962354f-2599-4531-a9aa-eb6b0a9e67e8" />
+    <Project Path="PRORC.Persistence/PRORC.Persistence.csproj" Id="1c520322-ba2f-4ee0-9509-5f5da297640a" />
+  </Folder>
+  <Folder Name="/Test/">
+    <Project Path="PRORC.Persistence.Test/PRORC.Persistence.Test.csproj" Id="c56eea7a-ed8d-44d2-b2ca-f6afdcdb1fa5" />
+    <Project Path="PRORC.Test/PRORC.Test.csproj" Id="67dd64f6-8448-4492-9e3a-2019520a80f9" />
+  </Folder>
+</Solution>
