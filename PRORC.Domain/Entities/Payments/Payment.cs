@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Entities.Payments
 {
-    internal class Payment
+    public class Payment
     {
     }
 }

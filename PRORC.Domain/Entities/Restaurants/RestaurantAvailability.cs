@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Entities.Restaurants
 {
-    internal class RestaurantAvailability
+    public class RestaurantAvailability
     {
     }
 }

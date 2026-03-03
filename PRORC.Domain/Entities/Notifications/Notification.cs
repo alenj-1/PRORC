@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Entities.Notifications
 {
-    internal class Notification
+    public class Notification
     {
     }
 }

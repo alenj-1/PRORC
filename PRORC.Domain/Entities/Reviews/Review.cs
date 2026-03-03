@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Entities.Reviews
 {
-    internal class Review
+    public class Review
     {
     }
 }

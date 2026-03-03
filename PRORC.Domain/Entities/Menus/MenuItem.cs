@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Entities.Menus
 {
-    internal class MenuItem
+    public class MenuItem
     {
     }
 }

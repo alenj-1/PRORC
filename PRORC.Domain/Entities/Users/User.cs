@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Entities.Users
 {
-    internal class User
+    public class User
     {
     }
 }

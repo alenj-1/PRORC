@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Entities.Orders
 {
-    internal class Order
+    public class Order
     {
     }
 }
