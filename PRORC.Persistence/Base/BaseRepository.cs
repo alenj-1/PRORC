@@ -10,20 +10,41 @@ using Microsoft.EntityFrameworkCore;
 
 namespace PRORC.Persistence.Base
 {
-    public abstract class BaseRepository<TEntity, TType> : IBaseRepository<TEntity, TType> where TEntity : class
+    public abstract class BaseRepository<TEntity, TKey> : IBaseRepository<TEntity, TKey> where TEntity : class
     {
-        private readonly PRORCContext _context;
+        protected readonly PRORCContext _context;
         protected readonly DbSet<TEntity> _dbSet;
         protected BaseRepository(PRORCContext context)
         {
             _context = context;
             _dbSet = _context.Set<TEntity>();
         }
-        public abstract Task AddAsync(TEntity entity);
-        public abstract Task DeleteEntityAsync(TEntity entity);
-        public abstract Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> filter);
-        public abstract Task<List<TEntity>> GetAllAsync();
-        public abstract Task<TEntity?> GetByIdAsync(TType id);
-        public abstract Task UpdateAsync(TEntity entity);
+
+        public virtual async Task AddAsync(TEntity entity)
+        {
+            await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual async Task UpdateAsync(TEntity entity)
+        {
+            _dbSet.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual async Task DeleteEntityAsync(TEntity entity)
+        {
+            _dbSet.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> filter)
+            => _dbSet.AnyAsync(filter);
+
+        public virtual Task<List<TEntity>> GetAllAsync()
+            => _dbSet.AsNoTracking().ToListAsync();
+
+        public virtual Task<TEntity?> GetByIdAsync(TKey id)
+            => _dbSet.FindAsync(id).AsTask();
     }
 }

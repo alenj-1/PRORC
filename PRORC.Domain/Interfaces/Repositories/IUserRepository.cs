@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PRORC.Domain.Entities.Users;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Interfaces.Repositories
 {
-    internal class IUserRepository
+    public interface IUserRepository : IBaseRepository<User, int>
     {
+
     }
 }
