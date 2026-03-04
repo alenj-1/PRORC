@@ -1,4 +1,4 @@
-﻿using PRORC.Domain.Entities.Reservations;
+using PRORC.Domain.Entities.Reservations;
 using System;
 using System.Collections.Generic;
 using System.Linq;

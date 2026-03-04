@@ -1,4 +1,4 @@
-﻿using PRORC.Domain.Entities.Reviews;
+using PRORC.Domain.Entities.Reviews;
 using System;
 using System.Collections.Generic;
 using System.Linq;

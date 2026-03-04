@@ -1,4 +1,4 @@
-﻿using PRORC.Domain.Entities.Users;
+using PRORC.Domain.Entities.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +9,5 @@ namespace PRORC.Domain.Interfaces.Repositories
 {
     public interface IUserRepository : IBaseRepository<User, int>
     {
-
     }
 }

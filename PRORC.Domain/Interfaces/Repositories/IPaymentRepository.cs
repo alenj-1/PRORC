@@ -1,4 +1,4 @@
-﻿using PRORC.Domain.Entities.Payments;
+using PRORC.Domain.Entities.Payments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
