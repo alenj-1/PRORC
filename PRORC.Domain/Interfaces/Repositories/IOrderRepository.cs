@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Interfaces.Repositories
 {
-    internal class IOrderRepository
+    public class IOrderRepository
     {
     }
 }
