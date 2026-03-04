@@ -1,4 +1,9 @@
 
+using PRORC.Persistence;
+using PRORC.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer;
+
 namespace PRORC.Api
 {
     public class Program
@@ -13,6 +18,9 @@ namespace PRORC.Api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddPersistence(builder.Configuration);
+            builder.Services.AddDbContext<PRORCContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 

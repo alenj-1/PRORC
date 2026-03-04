@@ -8,5 +8,6 @@ namespace PRORC.Domain.Entities.Menus
 {
     public class Menu
     {
+        public int Id { get; set; }
     }
 }

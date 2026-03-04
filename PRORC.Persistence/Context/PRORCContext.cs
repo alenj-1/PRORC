@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using PRORC.Domain.Entities.Menus;
 using PRORC.Domain.Entities.Notifications;
 using PRORC.Domain.Entities.Orders;
@@ -13,25 +8,29 @@ using PRORC.Domain.Entities.Restaurants;
 using PRORC.Domain.Entities.Reviews;
 using PRORC.Domain.Entities.Users;
 
-namespace PRORC.Persistence.Context
+namespace PRORC.Persistence.Context;
+
+public class PRORCContext : DbContext
 {
-    public class PRORCContext : DbContext
-    {
-        public PRORCContext(DbContextOptions<PRORCContext> options) : base(options)
+    public PRORCContext(DbContextOptions<PRORCContext> options) : base(options) { }
+
+    public DbSet<Menu> Menus => Set<Menu>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<Restaurant> Restaurants => Set<Restaurant>();
+    public DbSet<RestaurantAvailability> RestaurantAvailabilities => Set<RestaurantAvailability>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<User> Users => Set<User>();
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
 
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(PRORCContext).Assembly);
         }
-
-        public DbSet<User> Users { get; set; }
-        public DbSet<Restaurant> Restaurants { get; set; }
-        public DbSet<RestaurantAvailability> RestaurantAvailabilities { get; set; }
-        public DbSet<Menu> Menus { get; set; }
-        public DbSet<MenuItem> MenuItems { get; set; }
-        public DbSet<Reservation> Reservations { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Review> Reviews { get; set; }
     }
-}

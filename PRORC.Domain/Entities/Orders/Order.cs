@@ -8,5 +8,8 @@ namespace PRORC.Domain.Entities.Orders
 {
     public class Order
     {
+        public int Id { get; set; }
+
+        public List<OrderItem> OrderItem { get; set; } = new();
     }
 }
