@@ -1,12 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PRORC.Domain.Entities.Users;
 
 namespace PRORC.Persistence.Configurations
 {
-    internal class UserConfiguration
+    public class UserConfiguration : IEntityTypeConfiguration<User>
     {
+        public void Configure(EntityTypeBuilder<User> builder)
+        {
+            builder.ToTable("Users");
+
+            builder.HasKey(u => u.Id);
+
+            builder.Property(u => u.Id)
+                .ValueGeneratedOnAdd();
+
+            builder.Property(u => u.FullName)
+                .IsRequired()
+                .HasMaxLength(150);
+
+            builder.Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(150);
+
+            builder.HasIndex(u => u.Email)
+                .IsUnique();
+
+            builder.Property(u => u.PasswordHash)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            builder.Property(u => u.Role)
+                .IsRequired();
+
+            builder.Property(u => u.CreatedAt)
+                .IsRequired();
+        }
     }
 }

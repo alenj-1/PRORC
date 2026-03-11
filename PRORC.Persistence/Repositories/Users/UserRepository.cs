@@ -1,4 +1,6 @@
-﻿using PRORC.Domain.Entities.Users;
+﻿using Microsoft.EntityFrameworkCore;
+using PRORC.Domain.Entities.Users;
+using PRORC.Domain.Enums;
 using PRORC.Domain.Interfaces.Repositories;
 using PRORC.Persistence.Base;
 using PRORC.Persistence.Context;
@@ -14,6 +16,40 @@ namespace PRORC.Persistence.Repositories.Users
     {
         public UserRepository(PRORCContext context) : base(context)
         {
+        }
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<bool> EmailExistsAsync(string email)
+        {
+            return await _dbSet
+                .AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<List<User>> GetUsersByRoleAsync(UserRoleEnum role)
+        {
+            return await _dbSet
+                .Where(u => u.Role == role)
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> SearchUsersByNameAsync(string name)
+        {
+            return await _dbSet
+                .Where(u => u.FullName.Contains(name))
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+        }
+
+        public async Task<bool> ExistsUserByIdAndEmailAsync(int userId, string email)
+        {
+            return await _dbSet
+                .AnyAsync(u => u.Id == userId && u.Email == email);
         }
     }
 }
