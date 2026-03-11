@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Enums
 {
-    internal class PaymentStatusEnum
+    public enum PaymentStatusEnum
     {
+        Pending = 1,
+        Authorized = 2,
+        Failed = 3,
+        Refunded = 4
     }
 }
