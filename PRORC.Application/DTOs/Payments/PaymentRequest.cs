@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace PRORC.Application.DTOs.Payments
 {
-    internal class PaymentRequest
+    public class PaymentRequest
     {
+        public int OrderId { get; set; }
+        public decimal Amount { get; set; }
     }
 }

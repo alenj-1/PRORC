@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace PRORC.Application.DTOs.Orders
 {
-    internal class CreateOrderRequest
+    public class CreateOrderRequest
     {
+        public int UserId { get; set; }
+        public int RestaurantId { get; set; }
+        public List<OrderItemDto> Items { get; set; } = new();
     }
 }
