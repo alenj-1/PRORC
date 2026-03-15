@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +13,11 @@ namespace PRORC.Domain.Entities.Reviews
         public int RestaurantId { get; set; }
         public int Rating { get; set; }
         public string Comment { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsValidRating()
+        {
+            return Rating >= 1 && Rating <= 5;
+        }
     }
 }

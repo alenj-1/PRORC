@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Interfaces.Logging
 {
-    internal class IAuditLogger
+    public interface IAuditLogger
     {
+        Task LogAsync(string action, string details);
     }
 }

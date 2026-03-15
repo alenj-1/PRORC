@@ -1,4 +1,4 @@
-﻿using PRORC.Domain.Enums;
+using PRORC.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +10,10 @@ namespace PRORC.Domain.Entities.Users
     public class User
     {
         public int Id { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public UserRoleEnum Role { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+        public UserRoleEnum Role { get; set; } = UserRoleEnum.Customer;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
