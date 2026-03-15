@@ -13,9 +13,7 @@ namespace PRORC.Persistence.Repositories.Menus;
 
 public class MenuRepository : BaseRepository<Menu, int>, IMenuRepository
 {
-    public MenuRepository(PRORCContext context) : base(context)
-    {
-    }
+    public MenuRepository(PRORCContext context) : base(context) { }
 
     public async Task<Menu?> GetMenuWithItemsAsync(int id)
     {

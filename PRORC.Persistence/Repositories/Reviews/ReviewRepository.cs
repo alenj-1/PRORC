@@ -13,9 +13,7 @@ namespace PRORC.Persistence.Repositories.Reviews
 {
     public class ReviewRepository : BaseRepository<Review, int>, IReviewRepository
     {
-        public ReviewRepository(PRORCContext context) : base(context)
-        {
-        }
+        public ReviewRepository(PRORCContext context) : base(context) { }
 
         public async Task<List<Review>> GetReviewsByRestaurantAsync(int restaurantId)
         {

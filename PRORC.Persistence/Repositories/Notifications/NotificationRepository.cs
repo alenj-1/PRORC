@@ -13,9 +13,7 @@ namespace PRORC.Persistence.Repositories.Notifications
 {
     public class NotificationRepository : BaseRepository<Notification, int>, INotificationRepository
     {
-        public NotificationRepository(PRORCContext context) : base(context)
-        {
-        }
+        public NotificationRepository(PRORCContext context) : base(context) { }
 
         public async Task<List<Notification>> GetNotificationsByUserAsync(int userId)
         {

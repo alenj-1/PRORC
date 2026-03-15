@@ -14,9 +14,7 @@ namespace PRORC.Persistence.Repositories.Payments
 {
     public class PaymentRepository : BaseRepository<Payment, int>, IPaymentRepository
     {
-        public PaymentRepository(PRORCContext context) : base(context)
-        {
-        }
+        public PaymentRepository(PRORCContext context) : base(context) { }
 
         public async Task<Payment?> GetPaymentByOrderIdAsync(int orderId)
         {
