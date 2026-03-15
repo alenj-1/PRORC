@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Enums
 {
-    internal class UserRoleEnum
+    public enum UserRoleEnum
     {
+        Customer = 1,
+        RestaurantAdmin = 2,
+        SystemAdmin = 3
     }
 }

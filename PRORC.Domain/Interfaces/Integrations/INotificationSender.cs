@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Interfaces.Integrations
 {
-    internal class INotificationSender
+    public interface INotificationSender
     {
+        Task SendAsync(int userId, string title, string message);
     }
 }

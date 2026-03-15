@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Enums
 {
-    internal class ReservationStatusEnum
+    public enum ReservationStatusEnum
     {
+        Pending = 1,
+        Confirmed = 2,
+        Completed = 3,
+        Cancelled = 4
     }
 }
