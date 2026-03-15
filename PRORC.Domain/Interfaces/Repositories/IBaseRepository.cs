@@ -15,5 +15,8 @@ namespace PRORC.Domain.Interfaces.Repositories
         Task UpdateAsync(TEntity entity);
         Task DeleteEntityAsync(TEntity entity);
         Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> filter);
+        Task<List<TEntity>> FindAsync(Expression<Func<TEntity, bool>> filter);
+        Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> filter);
+        Task<int> CountAsync(Expression<Func<TEntity, bool>>? filter = null);
     }
 }

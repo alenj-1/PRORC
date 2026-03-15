@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PRORC.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,12 @@ namespace PRORC.Domain.Entities.Orders
     public class Order
     {
         public int Id { get; set; }
-
-        public List<OrderItem> OrderItem { get; set; } = new();
+        public int UserId { get; set; }
+        public int RestaurantId { get; set; }
+        public DateTime OrderDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public OrderStatusEnum Status { get; set; }
+        
+        public List<OrderItem> OrderItems { get; set; } = new();
     }
 }
