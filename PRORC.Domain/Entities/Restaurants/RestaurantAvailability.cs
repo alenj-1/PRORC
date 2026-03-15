@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +14,7 @@ namespace PRORC.Domain.Entities.Restaurants
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public int AvailableTables { get; set; }
+        
         public Restaurant? Restaurant { get; set; }
     }
 }

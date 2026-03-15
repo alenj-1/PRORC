@@ -1,4 +1,7 @@
-using PRORC.Persistence.DependencyInjection;
+using PRORC.Application.DependencyInjection;
+using PRORC.Persistence;
+using PRORC.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace PRORC.Api
 {
@@ -11,11 +14,13 @@ namespace PRORC.Api
             // Add services to the container.
 
             builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddApplication();
             builder.Services.AddPersistence(builder.Configuration);
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddDbContext<PRORCContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
