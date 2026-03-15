@@ -12,14 +12,15 @@ using PRORC.Persistence.Repositories.Restaurants;
 using PRORC.Persistence.Repositories.Reviews;
 using PRORC.Persistence.Repositories.Users;
 
-namespace PRORC.Persistence;
+namespace PRORC.Persistence.DependencyInjection;
 
-public static class DependencyInjection
+public static class PersistenceDI
 {
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<PRORCContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+            b => b.MigrationsAssembly("PRORC.Persistence")));
 
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();

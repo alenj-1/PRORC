@@ -1,4 +1,4 @@
-﻿using PRORC.Domain.Enums;
+using PRORC.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
