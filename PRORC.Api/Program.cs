@@ -1,3 +1,4 @@
+using PRORC.Application.DependencyInjection;
 using PRORC.Persistence.DependencyInjection;
 
 namespace PRORC.Api
@@ -13,6 +14,7 @@ namespace PRORC.Api
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAplication();
             builder.Services.AddPersistence(builder.Configuration);
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
