@@ -9,9 +9,7 @@ namespace PRORC.Persistence.Repositories.Reservations
 {
     public class ReservationRepository : BaseRepository<Reservation, int>, IReservationRepository
     {
-        public ReservationRepository(PRORCContext context) : base(context)
-        {
-        }
+        public ReservationRepository(PRORCContext context) : base(context) { }
 
         public async Task<List<Reservation>> GetReservationsByUserAsync(int userId)
         {

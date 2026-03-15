@@ -8,9 +8,7 @@ namespace PRORC.Persistence.Repositories.Restaurants
 {
     public class RestaurantRepository : BaseRepository<Restaurant, int>, IRestaurantRepository
     {
-        public RestaurantRepository(PRORCContext context) : base(context)
-        {
-        }
+        public RestaurantRepository(PRORCContext context) : base(context) { }
 
         public async Task<List<Restaurant>> GetActiveRestaurantsAsync()
         {

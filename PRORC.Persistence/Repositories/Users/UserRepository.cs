@@ -14,9 +14,7 @@ namespace PRORC.Persistence.Repositories.Users
 {
     public class UserRepository : BaseRepository<User, int>, IUserRepository
     {
-        public UserRepository(PRORCContext context) : base(context)
-        {
-        }
+        public UserRepository(PRORCContext context) : base(context) { }
 
         public async Task<User?> GetByEmailAsync(string email)
         {

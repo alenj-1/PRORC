@@ -14,9 +14,7 @@ namespace PRORC.Persistence.Repositories.Orders
 {
     public class OrderRepository : BaseRepository<Order, int>, IOrderRepository
     {
-        public OrderRepository(PRORCContext context) : base(context) 
-        {
-        }
+        public OrderRepository(PRORCContext context) : base(context) { }
 
         public async Task<Order?> GetByIdWithItemsAsync(int id)
         {
