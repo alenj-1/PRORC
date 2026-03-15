@@ -66,7 +66,7 @@ namespace PRORC.Persistence.Base
 
         public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>>? filter = null)
         {
-            if (filter == null)
+            if (filter is null)
                 return await _dbSet.CountAsync();
 
             return await _dbSet.CountAsync(filter);
