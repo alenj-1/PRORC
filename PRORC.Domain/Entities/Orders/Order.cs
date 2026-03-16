@@ -16,7 +16,7 @@ namespace PRORC.Domain.Entities.Orders
         public decimal TotalAmount { get; set; }
         public OrderStatusEnum Status { get; set; } = OrderStatusEnum.Pending;
 
-        public List<OrderItem> OrderItem { get; set; } = new();
+        public List<OrderItem> OrderItems { get; set; } = new();
 
         public void Confirm()
         {
