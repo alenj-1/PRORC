@@ -1,4 +1,5 @@
 using PRORC.Application.DependencyInjection;
+using PRORC.Infrastructure.DependencyInjection;
 using PRORC.Persistence.DependencyInjection;
 using PRORC.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ namespace PRORC.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddApplication();
+            builder.Services.AddInfrastructure();
             builder.Services.AddPersistence(builder.Configuration);
 
             var app = builder.Build();
