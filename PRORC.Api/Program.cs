@@ -1,5 +1,5 @@
 using PRORC.Application.DependencyInjection;
-using PRORC.Persistence;
+using PRORC.Persistence.DependencyInjection;
 using PRORC.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,8 +19,6 @@ namespace PRORC.Api
             builder.Services.AddSwaggerGen();
             builder.Services.AddApplication();
             builder.Services.AddPersistence(builder.Configuration);
-            builder.Services.AddDbContext<PRORCContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 

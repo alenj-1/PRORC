@@ -26,7 +26,6 @@ public class PRORCContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<User> Users => Set<User>();
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

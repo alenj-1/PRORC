@@ -33,7 +33,7 @@ namespace PRORC.Application.Services
             _paymentRepository = paymentRepository;
         }
 
-        public async Task<MetricsSummaryDto> GetSummaryAsync()
+        public async Task<MetricsSummaryDto> GetSummaryDTOAsync()
         {
             var users = await _userRepository.GetAllAsync();
             var restaurants = await _restaurantRepository.GetAllAsync();

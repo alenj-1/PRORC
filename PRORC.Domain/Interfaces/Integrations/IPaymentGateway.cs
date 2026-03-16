@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace PRORC.Domain.Interfaces.Integrations
 {
-    internal class IPaymentGateway
+    public interface IPaymentGateway
     {
+        Task<string> AuthorizedAsync(decimal amount);
     }
 }
