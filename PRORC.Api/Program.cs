@@ -1,8 +1,6 @@
 using PRORC.Application.DependencyInjection;
 using PRORC.Infrastructure.DependencyInjection;
 using PRORC.Persistence.DependencyInjection;
-using PRORC.Persistence.Context;
-using Microsoft.EntityFrameworkCore;
 
 namespace PRORC.Api
 {
@@ -34,8 +32,9 @@ namespace PRORC.Api
                 app.UseSwaggerUI();
             }
 
-            app.UseAuthorization();
+            app.UseHttpsRedirection();
 
+            app.UseAuthorization();
 
             app.MapControllers();
 
