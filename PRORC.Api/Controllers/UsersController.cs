@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PRORC.Api.Security;
 using PRORC.Application.DTOs.Users;
 using PRORC.Application.Interfaces;
 
@@ -6,57 +8,51 @@ namespace PRORC.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = AuthPolicies.SystemAdminOnly)]
 
-    public class UserController : ControllerBase
+    public class UsersController(IUserService userService) : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUserService _userService = userService;
 
-        public UserController(IUserService userService)
-        {
-            _userService = userService;
-        }
-
+        // GET que devuelve todos los usuarios que están registrados
         [HttpGet]
-        
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<List<UserDto>>> GetAll()
         {
-            var result = await _userService.GetAllAsync();
-            return Ok(result);
+            var users = await _userService.GetAllAsync();
+            return Ok(users);
         }
 
+
+        // GET que permite buscar un usuario por su id
         [HttpGet("{id:int}")]
-
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<UserDto>> GetById(int id)
         {
-            var result = await _userService.GetByIdAsync(id);
+            var user = await _userService.GetByIdAsync(id);
 
-            if (result is null)
+            if (user == null)
+            {
                 return NotFound(new { message = "User not found." });
+            }
 
-            return Ok(result);
+            return Ok(user);
         }
 
+
+        // GET que permite buscar usuarios por nombre
         [HttpGet("search")]
-
-        public async Task<IActionResult> SearchByName([FromQuery] string name)
+        public async Task<ActionResult<List<UserDto>>> SearchByName([FromQuery] string name)
         {
-            var result = await _userService.SearchByNameAsync(name);
-            return Ok(result);
+            var users = await _userService.SearchByNameAsync(name);
+            return Ok(users);
         }
 
-        [HttpPost]
 
-        public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
+        // POST que permite crear un usuario desde administración
+        [HttpPost]
+        public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserRequest request)
         {
-            try
-            {
-                var result = await _userService.CreateAsync(request);
-                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var created = await _userService.CreateAsync(request);
+            return Ok(created);
         }
     }
 }
