@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PRORC.Api.Security;
 using PRORC.Application.DTOs.Restaurants;
 using PRORC.Application.Interfaces;
 
@@ -7,52 +9,51 @@ namespace PRORC.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
 
-    public class RestaurantsController : ControllerBase
+    public class RestaurantsController(IRestaurantService restaurantService) : ControllerBase
     {
-        private readonly IRestaurantService _restaurantService;
+        private readonly IRestaurantService _restaurantService = restaurantService;
 
-        public RestaurantsController(IRestaurantService restaurantService)
-        {
-            _restaurantService = restaurantService;
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetActive()
-        {
-            var result = await _restaurantService.GetActiveAsync();
-            return Ok(result);
-        }
-
+        // GET que permite obtener un restaurante por id
+        [AllowAnonymous]
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<RestaurantDto>> GetById(int id)
         {
-            var result = await _restaurantService.GetByIdAsync(id);
+            var restaurant = await _restaurantService.GetByIdAsync(id);
 
-            if (result is null)
+            if (restaurant == null)
+            {
                 return NotFound(new { message = "Restaurant not found." });
+            }
 
-            return Ok(result);
+            return Ok(restaurant);
         }
 
+
+        // GET que permite devolver todos los restaurantes que están activo
+        [AllowAnonymous]
+        [HttpGet("active")]
+        public async Task<ActionResult<List<RestaurantDto>>> GetActive()
+        {
+            var restaurants = await _restaurantService.GetActiveAsync();
+            return Ok(restaurants);
+        }
+
+        // GET que permite buscar restaurantes
+        [AllowAnonymous]
         [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string text)
+        public async Task<ActionResult<List<RestaurantDto>>> Search([FromQuery] string search)
         {
-            var result = await _restaurantService.SearchAsync(text);
-            return Ok(result);
+            var restaurants = await _restaurantService.SearchAsync(search);
+            return Ok(restaurants);
         }
 
+        // POST que permite registrar un nuevo restaurante
+        [Authorize(Policy = AuthPolicies.RestaurantOrSystemAdmin)]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateRestaurantRequest request)
+        public async Task<ActionResult<RestaurantDto>> Create([FromBody] CreateRestaurantRequest request)
         {
-            try
-            {
-                var result = await _restaurantService.CreateAsync(request);
-                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var created = await _restaurantService.CreateAsync(request);
+            return Ok(created);
         }
     }
 }
