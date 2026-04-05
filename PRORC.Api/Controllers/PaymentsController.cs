@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PRORC.Api.Security;
+﻿using Microsoft.AspNetCore.Mvc;
 using PRORC.Application.DTOs.Payments;
 using PRORC.Application.Interfaces;
 
@@ -8,36 +6,53 @@ namespace PRORC.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
 
-    public class PaymentsController(IPaymentService paymentService) : ControllerBase
+    public class PaymentsController : ControllerBase
     {
-        private readonly IPaymentService _paymentService = paymentService;
+        private readonly IPaymentService _paymentService;
 
-        // POST que permite crear un pago a partir de una solicitud
-        [Authorize(Policy = AuthPolicies.CustomerOnly)]
-        [HttpPost]
-        public async Task<ActionResult<PaymentDto>> Create([FromBody] PaymentRequest request)
+        public PaymentsController(IPaymentService paymentService)
         {
-            var payment = await _paymentService.CreateAsync(request);
-            return Ok(payment);
+            _paymentService = paymentService;
         }
 
-        // GET que permite obtener el pago de una orden
         [HttpGet("order/{orderId:int}")]
-        public async Task<ActionResult<PaymentDto>> GetByOrderId(int orderId)
+        public async Task<IActionResult> GetByOrderId(int orderId)
         {
-            var payment = await _paymentService.GetByOrderIdAsync(orderId);
-            return Ok(payment);
+            var result = await _paymentService.GetByOrderIdAsync(orderId);
+
+            if (result is null)
+                return NotFound(new { message = "No payment method found for this order." });
+
+            return Ok(result);
         }
 
-        // PATCH que permite autorizar un pago ya creado
-        [Authorize(Policy = AuthPolicies.RestaurantOrSystemAdmin)]
-        [HttpPatch("order/{orderId:int}/authorize")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] PaymentRequest request)
+        {
+            try
+            {
+                var result = await _paymentService.CreateAsync(request);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{orderId:int}/authorize")]
         public async Task<IActionResult> Authorize(int orderId, [FromQuery] string transactionReference)
         {
-            await _paymentService.AuthorizeAsync(orderId, transactionReference);
-            return NoContent();
+            try
+            {
+                await _paymentService.AuthorizeAsync(orderId, transactionReference);
+                return Ok(new { message = "Payment successfully authorized." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }
