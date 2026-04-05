@@ -1,93 +1,46 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PRORC.Api.Security;
-using PRORC.Application.DTOs.Notifications;
+﻿using Microsoft.AspNetCore.Mvc;
 using PRORC.Application.Interfaces;
 
 namespace PRORC.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
-    public class NotificationsController(INotificationService notificationService) : ControllerBase
+
+    public class NotificationsController : ControllerBase
     {
-        private readonly INotificationService _notificationService = notificationService;
+        private readonly INotificationService _notificationService;
 
-        // GET que permite devolver todas las notificaciones de un usuario
+        public NotificationsController(INotificationService notificationService)
+        {
+            _notificationService = notificationService;
+        }
+
         [HttpGet("user/{userId:int}")]
-        public async Task<ActionResult<List<NotificationDto>>> GetByUser(int userId)
+        public async Task<IActionResult> GetByUser(int userId)
         {
-            if (!CanAccessUserData(userId))
-            {
-                return Forbid();
-            }
-
-            var notifications = await _notificationService.GetByUserAsync(userId);
-            return Ok(notifications);
+            var result = await _notificationService.GetByUserAsync(userId);
+            return Ok(result);
         }
 
-
-        // GET que permite devolver las notificaciones no leídas de un usuario
         [HttpGet("user/{userId:int}/unread")]
-        public async Task<ActionResult<List<NotificationDto>>> GetUnreadByUser(int userId)
+        public async Task<IActionResult> GetUnreadByUser(int userId)
         {
-            if (!CanAccessUserData(userId))
-            {
-                return Forbid();
-            }
-
-            var notifications = await _notificationService.GetUnreadByUserAsync(userId);
-            return Ok(notifications);
+            var result = await _notificationService.GetUnreadByUserAsync(userId);
+            return Ok(result);
         }
 
-
-        // GET que permite contar cuántas notificaciones no leídas tiene un usuario
         [HttpGet("user/{userId:int}/unread/count")]
-        public async Task<ActionResult<int>> CountUnread(int userId)
+        public async Task<IActionResult> CountUnread(int userId)
         {
-            if (!CanAccessUserData(userId))
-            {
-                return Forbid();
-            }
-
-            var count = await _notificationService.CountUnreadAsync(userId);
-            return Ok(count);
+            var result = await _notificationService.CountUnreadAsync(userId);
+            return Ok(new { userId, unreadCount = result });
         }
 
-
-        // PATCH que permite marcar una notificación como leída
-        [HttpPatch("{notificationId:int}/read")]
-        public async Task<IActionResult> MarkAsRead(int notificationId)
+        [HttpPut("{id:int}/read")]
+        public async Task<IActionResult> MarkAsRead(int id)
         {
-            await _notificationService.MarkAsReadAsync(notificationId);
-            return NoContent();
-        }
-
-
-        // Método para evitar que un usuario que no tenga rol de SystemAdmin consulte los datos de otro usuario
-        private bool CanAccessUserData(int userId)
-        {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (role == "SystemAdmin")
-            {
-                return true;
-            }
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
-            {
-                return false;
-            }
-
-            if (!int.TryParse(userIdClaim, out int currentUserId))
-            {
-                return false;
-            }
-
-            return currentUserId == userId;
+            await _notificationService.MarkAsReadAsync(id);
+            return Ok(new { message = "Notification marked as read." });
         }
     }
 }

@@ -1,84 +1,54 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PRORC.Api.Security;
+﻿using Microsoft.AspNetCore.Mvc;
 using PRORC.Application.DTOs.Reviews;
 using PRORC.Application.Interfaces;
-using System.Security.Claims;
 
 namespace PRORC.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
 
-    public class ReviewsController(IReviewService reviewService) : ControllerBase
+    public class ReviewsController : ControllerBase
     {
-        private readonly IReviewService _reviewService = reviewService;
+        private readonly IReviewService _reviewService;
 
-        // POST que permite crear una reseña nueva
-        [Authorize(Policy = AuthPolicies.CustomerOnly)]
-        [HttpPost]
-        public async Task<ActionResult<ReviewDto>> Create([FromBody] CreateReviewRequest request)
+        public ReviewsController(IReviewService reviewService)
         {
-            var review = await _reviewService.CreateAsync(request);
-            return Ok(review);
+            _reviewService = reviewService;
         }
 
-        // GET que permite obtener las reseñas de un restaurante
-        [AllowAnonymous]
         [HttpGet("restaurant/{restaurantId:int}")]
-        public async Task<ActionResult<List<ReviewDto>>> GetByRestaurant(int restaurantId)
+        public async Task<IActionResult> GetByRestaurant(int restaurantId)
         {
-            var reviews = await _reviewService.GetByRestaurantAsync(restaurantId);
-            return Ok(reviews);
+            var result = await _reviewService.GetByRestaurantAsync(restaurantId);
+            return Ok(result);
         }
 
-        // GET que permite obtener las reseñas creadas por un usuario
-        [Authorize]
         [HttpGet("user/{userId:int}")]
-        public async Task<ActionResult<List<ReviewDto>>> GetByUser(int userId)
+        public async Task<IActionResult> GetByUser(int userId)
         {
-            if (!CanAccessUserData(userId))
-            {
-                return Forbid();
-            }
-
-            var reviews = await _reviewService.GetByUserAsync(userId);
-            return Ok(reviews);
+            var result = await _reviewService.GetByUserAsync(userId);
+            return Ok(result);
         }
 
-        // GET que devuelve el promedio de calificación de un restaurante
-        [AllowAnonymous]
-        [HttpGet("restaurant/{restaurantId:int}/average-rating")]
-        public async Task<ActionResult<double>> GetAverageRating(int restaurantId)
+        [HttpGet("restaurant/{restaurantId:int}/average")]
+        public async Task<IActionResult> GetAverageRating(int restaurantId)
         {
-            var average = await _reviewService.GetAverageRatingAsync(restaurantId);
-            return Ok(average);
+            var result = await _reviewService.GetAverageRatingAsync(restaurantId);
+            return Ok(new { restaurantId, averageRating = result });
         }
 
-
-        // Método para evitar que un usuario que no tenga rol de SystemAdmin consulte los datos de otro usuario
-        private bool CanAccessUserData(int userId)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateReviewRequest request)
         {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (role == "SystemAdmin")
+            try
             {
-                return true;
+                var result = await _reviewService.CreateAsync(request);
+                return Ok(result);
             }
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
+            catch (InvalidOperationException ex)
             {
-                return false;
+                return BadRequest(new { message = ex.Message });
             }
-
-            if (!int.TryParse(userIdClaim, out int currentUserId))
-            {
-                return false;
-            }
-
-            return currentUserId == userId;
         }
     }
 }
