@@ -1,60 +1,57 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PRORC.Api.Security;
+﻿using Microsoft.AspNetCore.Mvc;
 using PRORC.Application.Interfaces;
-using PRORC.Application.DTOs.Menus;
 
 namespace PRORC.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
 
-    public class MenusController(IMenuService menuService) : ControllerBase
+    public class MenusController : ControllerBase
     {
-        private readonly IMenuService _menuService = menuService;
+        private readonly IMenuService _menuService;
 
-        // GET que permite obtener un menú por su Id
-        [AllowAnonymous]
+        public MenusController(IMenuService menuService)
+        {
+            _menuService = menuService;
+        }
+
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<MenuDto>> GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var menu = await _menuService.GetByIdAsync(id);
+            var result = await _menuService.GetByIdAsync(id);
 
-            if (menu == null)
-            {
+            if (result is null)
                 return NotFound(new { message = "Menu not found." });
-            }
-            return Ok(menu);
+
+            return Ok(result);
         }
 
-
-        // GET que permite obtener los menús de un restaurante
-        [AllowAnonymous]
         [HttpGet("restaurant/{restaurantId:int}")]
-        public async Task<ActionResult<List<MenuDto>>> GetByRestaurant(int restaurantId)
+        public async Task<IActionResult> GetByRestaurant(int restaurantId)
         {
-            var menus = await _menuService.GetByRestaurantAsync(restaurantId);
-            return Ok(menus);
+            var result = await _menuService.GetByRestaurantAsync(restaurantId);
+            return Ok(result);
         }
 
-
-        // POST que permite crear un nuevo menú para un restaurante
-        [Authorize(Policy = AuthPolicies.RestaurantOrSystemAdmin)]
-        [HttpPost("restaurant/{restaurantId:int}")]
-        public async Task<ActionResult<MenuDto>> Create(int restaurantId, [FromQuery] string name)
+        [HttpGet("{menuId:int}/available-items")]
+        public async Task<IActionResult> GetAvailableItems(int menuId)
         {
-            var created = await _menuService.CreateAsync(restaurantId, name);
-            return Ok(created);
+            var result = await _menuService.GetAvailableItemsAsync(menuId);
+            return Ok(result);
         }
 
-
-        // GET que permite obtener los items disponibles para un menú específico
-        [AllowAnonymous]
-        [HttpGet("{menuId:int}/items/available")]
-        public async Task<ActionResult<List<MenuItemDto>>> GetAvailableItems(int menuId)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] int restaurantId, [FromQuery] string name)
         {
-            var items = await _menuService.GetAvailableItemsAsync(menuId);
-            return Ok(items);
+            try
+            {
+                var result = await _menuService.CreateAsync(restaurantId, name);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace PRORC.Api.Middlewares
 {
-    public class RoleMiddleware
+    public class CorrelationIdMiddleware
     {
     }
 }

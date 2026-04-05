@@ -1,25 +1,25 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PRORC.Api.Security;
-using PRORC.Application.DTOs.Metrics;
+﻿using Microsoft.AspNetCore.Mvc;
 using PRORC.Application.Interfaces;
 
 namespace PRORC.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = AuthPolicies.RestaurantOrSystemAdmin)]
 
-    public class MetricsController(IMetricsService metricsService) : ControllerBase
+    public class MetricsController : ControllerBase
     {
-        private readonly IMetricsService _metricsService = metricsService;
+        private readonly IMetricsService _metricsService;
 
-        // GET que permite devolver el resumen de métricas que está definido en MetricsSummaryDto
-        [HttpGet("summary")]
-        public async Task<ActionResult<MetricsSummaryDto>> GetSummary()
+        public MetricsController(IMetricsService metricsService)
         {
-            var summary = await _metricsService.GetSummaryDTOAsync();
-            return Ok(summary);
+            _metricsService = metricsService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSummaryDTO()
+        {
+            var result = await _metricsService.GetSummaryDTOAsync();
+            return Ok(result);
         }
     }
 }

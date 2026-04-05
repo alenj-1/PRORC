@@ -1,77 +1,47 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using PRORC.Api.Security;
+﻿using Microsoft.AspNetCore.Mvc;
 using PRORC.Application.DTOs.Reservations;
 using PRORC.Application.Interfaces;
-using System.Security.Claims;
 
 namespace PRORC.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
 
-    public class ReservationsController(IReservationService reservationService) : ControllerBase
+    public class ReservationsController : ControllerBase
     {
-        private readonly IReservationService _reservationService = reservationService;
+        private readonly IReservationService _reservationService;
 
-        // POST que permite crear una nueva reserva
-        [Authorize(Policy = AuthPolicies.CustomerOnly)]
-        [HttpPost]
-        public async Task<ActionResult<ReservationDto>> Create([FromBody] CreateReservationRequest request)
+        public ReservationsController(IReservationService reservationService)
         {
-            var reservation = await _reservationService.CreateAsync(request);
-            return Ok(reservation);
+            _reservationService = reservationService;
         }
 
-
-        // GET que permite consultar las reservas de un usuario
         [HttpGet("user/{userId:int}")]
-        public async Task<ActionResult<List<ReservationDto>>> GetByUser(int userId)
+        public async Task<IActionResult> GetByUser(int userId)
         {
-            if (!CanAccessUserData(userId))
-            {
-                return Forbid();
-            }
-
-            var reservations = await _reservationService.GetByUserAsync(userId);
-            return Ok(reservations);
+            var result = await _reservationService.GetByUserAsync(userId);
+            return Ok(result);
         }
 
-
-        // GET que permite consultar las reservas de un restaurante
-        [Authorize(Policy = AuthPolicies.RestaurantOrSystemAdmin)]
         [HttpGet("restaurant/{restaurantId:int}")]
-        public async Task<ActionResult<List<ReservationDto>>> GetByRestaurant(int restaurantId)
+        public async Task<IActionResult> GetByRestaurant(int restaurantId)
         {
-            var reservations = await _reservationService.GetByRestaurantAsync(restaurantId);
-            return Ok(reservations);
+            var result = await _reservationService.GetByRestaurantAsync(restaurantId);
+            return Ok(result);
         }
 
-
-        // Método para evitar que un usuario que no tenga rol de SystemAdmin consulte los datos de otro usuario
-        private bool CanAccessUserData(int userId)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateReservationRequest request)
         {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (role == "SystemAdmin")
+            try
             {
-                return true;
+                var result = await _reservationService.CreateAsync(request);
+                return Ok(result);
             }
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
+            catch (InvalidOperationException ex)
             {
-                return false;
+                return BadRequest(new { message = ex.Message });
             }
-
-            if (!int.TryParse(userIdClaim, out int currentUserId))
-            {
-                return false;
-            }
-
-            return currentUserId == userId;
         }
     }
 }
