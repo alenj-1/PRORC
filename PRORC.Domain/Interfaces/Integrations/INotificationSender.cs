@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PRORC.Domain.Interfaces.Integrations
+﻿namespace PRORC.Domain.Interfaces.Integrations
 {
     public interface INotificationSender
     {
-        Task SendAsync(int userId, string title, string message);
+        Task SendAsync(string to, string subject, string message);
     }
 }
