@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PRORC.Domain.Interfaces.Integrations
+﻿namespace PRORC.Domain.Interfaces.Integrations
 {
     public interface IPaymentGateway
     {
-        Task<string> AuthorizedAsync(decimal amount);
+        Task<string?> AuthorizePaymentAsync(decimal amount, string paymentMethod);
+        Task<bool> RefundPaymentAsync(string paymentReference);
     }
 }
