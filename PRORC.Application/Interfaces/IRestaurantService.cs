@@ -1,17 +1,15 @@
 ﻿using PRORC.Application.DTOs.Restaurants;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRORC.Application.Interfaces
 {
     public interface IRestaurantService
     {
-        Task<RestaurantDto?> GetByIdAsync(int id);
-        Task<List<RestaurantDto>> GetActiveAsync();
-        Task<List<RestaurantDto>> SearchAsync(string search);
-        Task<RestaurantDto> CreateAsync(CreateRestaurantRequest request);
+        Task<RestaurantDto> CreateRestaurantAsync(CreateRestaurantRequest request);
+        Task<RestaurantDto?> GetByIdAsync(int restaurantId);
+        Task<IEnumerable<RestaurantDto>> GetByOwnerIdAsync(int ownerId);
+        Task<IEnumerable<RestaurantDto>> SearchAsync(string? cuisineType, string? address, double? minimumRating);
+        Task ActivateRestaurantAsync(int restaurantId);
+        Task DeactivateRestaurantAsync(int restaurantId);
+        Task SetAvailabilityAsync(int restaurantId, DateTime availableDate, TimeSpan startTime, TimeSpan endTime, int availableTables);
     }
 }

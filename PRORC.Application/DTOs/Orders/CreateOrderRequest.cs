@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PRORC.Application.DTOs.Menus;
 
 namespace PRORC.Application.DTOs.Orders
 {
@@ -10,6 +6,7 @@ namespace PRORC.Application.DTOs.Orders
     {
         public int UserId { get; set; }
         public int RestaurantId { get; set; }
-        public List<OrderItemDto> Items { get; set; } = new();
+        public int ReservationId { get; set; }
+        public List<MenuItemDto> Items { get; set; } = new();
     }
 }

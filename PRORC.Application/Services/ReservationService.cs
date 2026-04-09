@@ -1,7 +1,8 @@
-﻿using PRORC.Application.DTOs.Reservations;
+﻿using Microsoft.Extensions.Logging;
+using PRORC.Application.DTOs.Reservations;
 using PRORC.Application.Interfaces;
 using PRORC.Domain.Entities.Reservations;
-using PRORC.Domain.Enums;
+using PRORC.Domain.Interfaces.Logging;
 using PRORC.Domain.Interfaces.Repositories;
 
 namespace PRORC.Application.Services
@@ -9,75 +10,224 @@ namespace PRORC.Application.Services
     public class ReservationService : IReservationService
     {
         private readonly IReservationRepository _reservationRepository;
-        private readonly IUserRepository _userRepository;
         private readonly IRestaurantRepository _restaurantRepository;
+        private readonly IAuditLogger _auditLogger;
+        private readonly ILogger<ReservationService> _logger;
 
         public ReservationService(
             IReservationRepository reservationRepository,
-            IUserRepository userRepository,
-            IRestaurantRepository restaurantRepository)
+            IRestaurantRepository restaurantRepository,
+            IAuditLogger auditLogger,
+            ILogger<ReservationService> logger)
         {
             _reservationRepository = reservationRepository;
-            _userRepository = userRepository;
             _restaurantRepository = restaurantRepository;
+            _auditLogger = auditLogger;
+            _logger = logger;
         }
 
-        public async Task<ReservationDto> CreateAsync(CreateReservationRequest request)
+        public async Task<ReservationDto> CreateReservationAsync(CreateReservationRequest request)
         {
-            if (await _userRepository.GetByIdAsync(request.UserId) is null)
-                throw new InvalidOperationException("The user does not exist.");
-
-            if (await _restaurantRepository.GetByIdAsync(request.RestaurantId) is null)
-                throw new InvalidOperationException("The restaurant does not exist.");
-
-            if (request.PartySize <= 0)
-                throw new InvalidOperationException("Group size must be greater than zero.");
-
-            if (request.ReservationDate <= DateTime.Now)
-                throw new InvalidOperationException("Reservation must be for a future date.");
-
-            var hasConflict = await _reservationRepository.HasReservationConflictAsync(
-                request.RestaurantId,
-                request.ReservationDate);
-
-            if (hasConflict)
-                throw new InvalidOperationException("A reservation has already been made for that date and restaurant.");
-
-            var entity = new Reservation
+            try
             {
-                UserId = request.UserId,
-                RestaurantId = request.RestaurantId,
-                ReservationDate = request.ReservationDate,
-                PartySize = request.PartySize,
-                Status = ReservationStatusEnum.Pending,
-                CreatedAt = DateTime.UtcNow
+                if (request == null)
+                    throw new ArgumentNullException(nameof(request));
+
+                var restaurant = await _restaurantRepository.GetByIdAsync(request.RestaurantId)
+                    ?? throw new KeyNotFoundException("Restaurant not found.");
+
+                if (!restaurant.IsActive)
+                    throw new InvalidOperationException("The restaurant is inactive.");
+
+                var availability = await _restaurantRepository.GetAvailabilitySlotAsync(
+                    request.RestaurantId,
+                    request.ReservationDate,
+                    request.ReservationTime);
+
+                if (availability == null)
+                    throw new InvalidOperationException("There is no availability for that date and time.");
+
+                if (availability.AvailableTables < request.NumberOfTables)
+                    throw new InvalidOperationException("There are not enough tables available.");
+
+                var reservation = Reservation.Create(
+                    request.UserId,
+                    request.RestaurantId,
+                    request.ReservationDate,
+                    request.ReservationTime,
+                    request.NumberOfTables);
+
+                // Apartamos las mesas desde el momento en que se crea la reserva
+                availability.ReserveTables(request.NumberOfTables);
+
+                var createdReservation = await _reservationRepository.AddAsync(reservation);
+                await _restaurantRepository.UpdateAvailabilityAsync(availability);
+
+                _logger.LogInformation("Reservation {ReservationId} created successfully.", createdReservation.Id);
+
+                await TryWriteAuditAsync(
+                    createdReservation.UserId,
+                    "CreateReservation",
+                    "Reservation",
+                    createdReservation.Id,
+                    $"Reservation created for restaurant {createdReservation.RestaurantId}.");
+
+                return MapReservation(createdReservation);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating reservation for restaurant {RestaurantId}.", request?.RestaurantId);
+                throw;
+            }
+        }
+
+        public async Task<ReservationDto?> GetByIdAsync(int reservationId)
+        {
+            try
+            {
+                var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+                return reservation == null ? null : MapReservation(reservation);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reservation {ReservationId}.", reservationId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<ReservationDto>> GetByUserIdAsync(int userId)
+        {
+            try
+            {
+                var reservations = await _reservationRepository.GetByUserIdAsync(userId);
+                return reservations.Select(MapReservation);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reservations for user {UserId}.", userId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<ReservationDto>> GetByRestaurantIdAsync(int restaurantId)
+        {
+            try
+            {
+                var reservations = await _reservationRepository.GetByRestaurantIdAsync(restaurantId);
+                return reservations.Select(MapReservation);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reservations for restaurant {RestaurantId}.", restaurantId);
+                throw;
+            }
+        }
+
+        public async Task ConfirmReservationAsync(int reservationId)
+        {
+            try
+            {
+                var reservation = await _reservationRepository.GetByIdAsync(reservationId)
+                    ?? throw new KeyNotFoundException("Reservation not found.");
+
+                reservation.Confirm();
+
+                await _reservationRepository.UpdateAsync(reservation);
+
+                await TryWriteAuditAsync(reservation.UserId, "ConfirmReservation", "Reservation", reservation.Id, "Reservation confirmed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error confirming reservation {ReservationId}.", reservationId);
+                throw;
+            }
+        }
+
+        public async Task CompleteReservationAsync(int reservationId)
+        {
+            try
+            {
+                var reservation = await _reservationRepository.GetByIdAsync(reservationId)
+                    ?? throw new KeyNotFoundException("Reservation not found.");
+
+                reservation.Complete();
+
+                await _reservationRepository.UpdateAsync(reservation);
+
+                await TryWriteAuditAsync(reservation.UserId, "CompleteReservation", "Reservation", reservation.Id, "Reservation completed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing reservation {ReservationId}.", reservationId);
+                throw;
+            }
+        }
+
+        public async Task CancelReservationAsync(int reservationId)
+        {
+            try
+            {
+                var reservation = await _reservationRepository.GetByIdAsync(reservationId)
+                    ?? throw new KeyNotFoundException("Reservation not found.");
+
+                reservation.Cancel();
+
+                await _reservationRepository.UpdateAsync(reservation);
+
+                // Si conseguimos el slot, liberamos las mesas.
+                // Si esto falla, no reventamos la cancelación principal.
+                try
+                {
+                    var availability = await _restaurantRepository.GetAvailabilitySlotAsync(
+                        reservation.RestaurantId,
+                        reservation.ReservationDate,
+                        reservation.ReservationTime);
+
+                    if (availability != null)
+                    {
+                        availability.FreeTables(reservation.NumberOfTables);
+                        await _restaurantRepository.UpdateAvailabilityAsync(availability);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not release tables after cancelling reservation {ReservationId}.", reservationId);
+                }
+
+                await TryWriteAuditAsync(reservation.UserId, "CancelReservation", "Reservation", reservation.Id, "Reservation cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling reservation {ReservationId}.", reservationId);
+                throw;
+            }
+        }
+
+        private ReservationDto MapReservation(Reservation reservation)
+        {
+            return new ReservationDto
+            {
+                Id = reservation.Id,
+                UserId = reservation.UserId,
+                RestaurantId = reservation.RestaurantId,
+                ReservationDate = reservation.ReservationDate,
+                ReservationTime = reservation.ReservationTime,
+                NumberOfTables = reservation.NumberOfTables,
+                Status = reservation.Status.ToString(),
+                CreatedAt = reservation.CreatedAt
             };
-
-            await _reservationRepository.AddAsync(entity);
-            return Map(entity);
         }
 
-        public async Task<List<ReservationDto>> GetByUserAsync(int userId)
+        private async Task TryWriteAuditAsync(int? userId, string action, string entityName, int entityId, string details)
         {
-            var reservations = await _reservationRepository.GetReservationsByUserAsync(userId);
-            return reservations.Select(Map).ToList();
+            try
+            {
+                await _auditLogger.LogAsync(userId, action, entityName, entityId, details);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Audit logging failed in ReservationService.");
+            }
         }
-
-        public async Task<List<ReservationDto>> GetByRestaurantAsync(int restaurantId)
-        {
-            var reservations = await _reservationRepository.GetReservationsByRestaurantAsync(restaurantId);
-            return reservations.Select(Map).ToList();
-        }
-
-        private static ReservationDto Map(Reservation reservation) => new()
-        {
-            Id = reservation.Id,
-            UserId = reservation.UserId,
-            RestaurantId = reservation.RestaurantId,
-            ReservationDate = reservation.ReservationDate,
-            PartySize = reservation.PartySize,
-            Status = reservation.Status,
-            CreatedAt = reservation.CreatedAt
-        };
     }
 }

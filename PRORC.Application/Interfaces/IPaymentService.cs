@@ -1,16 +1,13 @@
 ﻿using PRORC.Application.DTOs.Payments;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRORC.Application.Interfaces
 {
     public interface IPaymentService
     {
-        Task<PaymentDto> CreateAsync(PaymentRequest request);
-        Task<PaymentDto> GetByOrderIdAsync(int orderId);
-        Task AuthorizeAsync(int orderId, string transactionReference);
+        Task<PaymentDto> CreatePaymentAsync(PaymentRequest request);
+        Task<PaymentDto?> GetByOrderIdAsync(int orderId);
+        Task<PaymentDto> AuthorizePaymentAsync(int paymentId);
+        Task RejectPaymentAsync(int paymentId);
+        Task RefundPaymentAsync(int paymentId);
     }
 }
