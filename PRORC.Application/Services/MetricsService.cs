@@ -1,4 +1,5 @@
-﻿using PRORC.Application.DTOs.Metrics;
+﻿using Microsoft.Extensions.Logging;
+using PRORC.Application.DTOs.Metrics;
 using PRORC.Application.Interfaces;
 using PRORC.Domain.Enums;
 using PRORC.Domain.Interfaces.Repositories;
@@ -7,58 +8,70 @@ namespace PRORC.Application.Services
 {
     public class MetricsService : IMetricsService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IRestaurantRepository _restaurantRepository;
-        private readonly IMenuRepository _menuRepository;
-        private readonly IOrderRepository _orderRepository;
         private readonly IReservationRepository _reservationRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly IReviewRepository _reviewRepository;
-        private readonly IPaymentRepository _paymentRepository;
+        private readonly ILogger<MetricsService> _logger;
 
         public MetricsService(
-            IUserRepository userRepository,
-            IRestaurantRepository restaurantRepository,
-            IMenuRepository menuRepository,
-            IOrderRepository orderRepository,
             IReservationRepository reservationRepository,
+            IOrderRepository orderRepository,
             IReviewRepository reviewRepository,
-            IPaymentRepository paymentRepository)
+            ILogger<MetricsService> logger)
         {
-            _userRepository = userRepository;
-            _restaurantRepository = restaurantRepository;
-            _menuRepository = menuRepository;
-            _orderRepository = orderRepository;
             _reservationRepository = reservationRepository;
+            _orderRepository = orderRepository;
             _reviewRepository = reviewRepository;
-            _paymentRepository = paymentRepository;
+            _logger = logger;
         }
 
-        public async Task<MetricsSummaryDto> GetSummaryDTOAsync()
+        public async Task<MetricsSummaryDto> GetRestaurantSummaryAsync(int restaurantId)
         {
-            var users = await _userRepository.GetAllAsync();
-            var restaurants = await _restaurantRepository.GetAllAsync();
-            var activeRestaurants = await _restaurantRepository.GetActiveRestaurantsAsync();
-            var menus = await _menuRepository.GetAllAsync();
-            var orders = await _orderRepository.GetAllAsync();
-            var pendingOrders = await _orderRepository.GetOrdersByStatusAsync(OrderStatusEnum.Pending);
-            var reservations = await _reservationRepository.GetAllAsync();
-            var pendingReservations = await _reservationRepository.GetReservationsByStatusAsync(ReservationStatusEnum.Pending);
-            var reviews = await _reviewRepository.GetAllAsync();
-            var authorizedPayments = await _paymentRepository.GetPaymentsByStatusAsync(PaymentStatusEnum.Authorized);
-
-            return new MetricsSummaryDto
+            try
             {
-                TotalUsers = users.Count,
-                TotalRestaurants = restaurants.Count,
-                ActiveRestaurants = activeRestaurants.Count,
-                TotalMenus = menus.Count,
-                TotalOrders = orders.Count,
-                PendingOrders = pendingOrders.Count,
-                TotalReservations = reservations.Count,
-                PendingReservations = pendingReservations.Count,
-                TotalReviews = reviews.Count,
-                AuthorizedPayments = authorizedPayments.Count
-            };
+                var reservations = (await _reservationRepository.GetByRestaurantIdAsync(restaurantId)).ToList();
+                var reviews = (await _reviewRepository.GetByRestaurantIdAsync(restaurantId)).ToList();
+
+                var totalOrders = 0;
+                var completedOrders = 0;
+                decimal totalRevenue = 0;
+
+                // Recorre las reservas para encontrar las órdenes asociadas
+                foreach (var reservation in reservations)
+                {
+                    var order = await _orderRepository.GetByReservationIdAsync(reservation.Id);
+
+                    if (order != null)
+                    {
+                        totalOrders++;
+
+                        if (order.Status == OrderStatus.Completed)
+                        {
+                            completedOrders++;
+                            totalRevenue += order.TotalAmount;
+                        }
+                    }
+                }
+
+                var averageRating = await _reviewRepository.GetAverageRatingByRestaurantIdAsync(restaurantId);
+
+                return new MetricsSummaryDto
+                {
+                    RestaurantId = restaurantId,
+                    TotalReservations = reservations.Count,
+                    CompletedReservations = reservations.Count(r => r.Status == ReservationStatus.Completed),
+                    TotalOrders = totalOrders,
+                    CompletedOrders = completedOrders,
+                    TotalRevenue = totalRevenue,
+                    TotalReviews = reviews.Count,
+                    AverageRating = averageRating
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting metrics summary for restaurant {RestaurantId}.", restaurantId);
+                throw;
+            }
         }
     }
 }

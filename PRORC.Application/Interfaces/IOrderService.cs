@@ -1,18 +1,15 @@
 ﻿using PRORC.Application.DTOs.Orders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRORC.Application.Interfaces
 {
     public interface IOrderService
     {
-        Task<OrderDto> CreateAsync(CreateOrderRequest request);
-        Task<OrderDto?> GetByIdAsync(int id);
-        Task<List<OrderDto>> GetByUserAsync(int userId);
-        Task<List<OrderDto>> GetByRestaurantAsync(int restaurantId);
-        Task ConfirmAsync(int orderId);
+        Task<OrderDto> CreateOrderAsync(CreateOrderRequest request);
+        Task<OrderDto?> GetByIdAsync(int orderId);
+        Task<OrderDto?> GetByReservationIdAsync(int reservationId);
+        Task<IEnumerable<OrderDto>> GetByUserIdAsync(int userId);
+        Task ConfirmOrderAsync(int orderId);
+        Task CompleteOrderAsync(int orderId);
+        Task CancelOrderAsync(int orderId);
     }
 }

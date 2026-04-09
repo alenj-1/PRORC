@@ -1,17 +1,16 @@
 ﻿using PRORC.Application.DTOs.Users;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PRORC.Domain.Enums;
 
 namespace PRORC.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<UserDto?> GetByIdAsync(int id);
-        Task<List<UserDto>> GetAllAsync();
-        Task<List<UserDto>> SearchByNameAsync(string name);
         Task<UserDto> CreateAsync(CreateUserRequest request);
+        Task<UserDto?> GetByIdAsync(int id);
+        Task<UserDto?> GetByEmailAsync(string email);
+        Task<IEnumerable<UserDto>> GetByRoleAsync(UserRole role);
+        Task ActivateAsync(int userId);
+        Task DeactivateAsync(int userId);
+        Task ChangeRoleAsync(int userId, UserRole newRole);
     }
 }
