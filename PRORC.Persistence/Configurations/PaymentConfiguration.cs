@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PRORC.Domain.Entities.Orders;
 using PRORC.Domain.Entities.Payments;
 
 namespace PRORC.Persistence.Configurations
@@ -19,17 +20,29 @@ namespace PRORC.Persistence.Configurations
                 .IsRequired();
 
             builder.Property(p => p.Amount)
-                .IsRequired()
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
 
             builder.Property(p => p.Status)
                 .IsRequired();
 
-            builder.Property(p => p.TransactionReference)
-                .HasMaxLength(150);
+            builder.Property(p => p.PaymentMethod)
+                .HasMaxLength(100)
+                .IsRequired();
 
             builder.Property(p => p.PaymentDate)
                 .IsRequired();
+
+            builder.Property(p => p.PaymentReference)
+                .HasMaxLength(150);
+
+            builder.HasIndex(p => p.OrderId)
+                .IsUnique();
+
+            builder.HasOne<Order>()
+                .WithMany()
+                .HasForeignKey(p => p.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

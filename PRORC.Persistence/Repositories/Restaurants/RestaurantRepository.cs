@@ -1,74 +1,108 @@
-﻿using PRORC.Domain.Entities.Restaurants;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using PRORC.Domain.Entities.Restaurants;
 using PRORC.Domain.Interfaces.Repositories;
 using PRORC.Persistence.Base;
 using PRORC.Persistence.Context;
 
 namespace PRORC.Persistence.Repositories.Restaurants
 {
-    public class RestaurantRepository : BaseRepository<Restaurant, int>, IRestaurantRepository
+    public class RestaurantRepository : BaseRepository<Restaurant>, IRestaurantRepository
     {
-        public RestaurantRepository(PRORCContext context) : base(context) { }
+        public RestaurantRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
-        public async Task<List<Restaurant>> GetActiveRestaurantsAsync()
+        public async Task<IEnumerable<Restaurant>> GetByOwnerIdAsync(int ownerId)
         {
-            return await _dbSet
-                .Where(r => r.IsActive)
-                .OrderBy(r => r.Name)
-                .ToListAsync();
+            try
+            {
+                return await _context.Restaurants
+                    .AsNoTracking()
+                    .Where(r => r.OwnerId == ownerId)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting restaurants by OwnerId {OwnerId}.", ownerId);
+                throw;
+            }
         }
 
-        public async Task<List<Restaurant>> GetInactiveRestaurantsAsync()
+        public async Task<IEnumerable<Restaurant>> SearchAsync(string? cuisineType, string? address, double? minimumRating)
         {
-            return await _dbSet
-                .Where(r => !r.IsActive)
-                .OrderBy(r => r.Name)
-                .ToListAsync();
+            try
+            {
+                // Empieza con una consulta base
+                var query = _context.Restaurants
+                    .AsNoTracking()
+                    .Where(r => r.IsActive)
+                    .AsQueryable();
+
+                // Si se indicó el tipo de comida, se filtra
+                if (!string.IsNullOrWhiteSpace(cuisineType))
+                {
+                    query = query.Where(r => r.CuisineType.Contains(cuisineType));
+                }
+
+                // Si se indicó la dirección, se filtra
+                if (!string.IsNullOrWhiteSpace(address))
+                {
+                    query = query.Where(r => r.Address.Contains(address));
+                }
+
+                // Si se indicó el rating mínimo, también se filtra
+                if (minimumRating.HasValue)
+                {
+                    query = query.Where(r => r.Rating >= minimumRating.Value);
+                }
+
+                // Devuelve los resultados ordenados por rating descendente
+                return await query
+                    .OrderByDescending(r => r.Rating)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching restaurants.");
+                throw;
+            }
         }
 
-        public async Task<Restaurant?> GetRestaurantWithAvailabilityAsync(int id)
+        public async Task<IEnumerable<RestaurantAvailability>> GetAvailabilitiesByRestaurantIdAsync(int restaurantId)
         {
-            return await _dbSet
-                .Include(r => r.Availabilities)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            try
+            {
+                return await _context.RestaurantAvailabilities
+                    .AsNoTracking()
+                    .Where(a => a.RestaurantId == restaurantId)
+                    .OrderBy(a => a.AvailableDate)
+                    .ThenBy(a => a.StartTime)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting availabilities by RestaurantId {RestaurantId}.", restaurantId);
+                throw;
+            }
         }
 
-        public async Task<Restaurant?> GetRestaurantByNameAsync(string name)
+        public async Task<RestaurantAvailability?> GetAvailabilitySlotAsync(int restaurantId, DateTime availableDate, TimeSpan reservationTime)
         {
-            return await _dbSet
-                .FirstOrDefaultAsync(r => r.Name == name);
-        }
+            try
+            {
+                var onlyDate = availableDate.Date;
 
-        public async Task<bool> ExistsRestaurantByNameAsync(string name)
-        {
-            return await _dbSet
-                .AnyAsync(r => r.Name == name);
-        }
-
-        public async Task<List<Restaurant>> SearchRestaurantsAsync(string search)
-        {
-            return await _dbSet
-                .Where(r => r.Name.Contains(search) || r.CuisineType.Contains(search))
-                .OrderBy(r => r.Name)
-                .ToListAsync();
-        }
-
-        public async Task<List<Restaurant>> GetRestaurantsByCuisineAsync(string cuisineType)
-        {
-            return await _dbSet
-                .Where(r => r.CuisineType == cuisineType && r.IsActive)
-                .OrderBy(r => r.Name)
-                .ToListAsync();
-        }
-
-        public async Task<List<Restaurant>> GetActiveRestaurantsWithAvailabilityAsync()
-        {
-            return await _dbSet
-                .Where(r => r.IsActive)
-                .Include(r => r.Availabilities)
-                .OrderBy(r => r.Name)
-                .ToListAsync();
+                return await _context.RestaurantAvailabilities
+                    .FirstOrDefaultAsync(a =>
+                        a.RestaurantId == restaurantId &&
+                        a.AvailableDate.Date == onlyDate &&
+                        a.StartTime <= reservationTime &&
+                        a.EndTime > reservationTime);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting availability slot for RestaurantId {RestaurantId}.", restaurantId);
+                throw;
+            }
         }
     }
 }
-

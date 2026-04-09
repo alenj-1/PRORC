@@ -15,26 +15,29 @@ namespace PRORC.Persistence.Configurations
             builder.Property(u => u.Id)
                 .ValueGeneratedOnAdd();
 
-            builder.Property(u => u.FullName)
-                .IsRequired()
-                .HasMaxLength(150);
+            builder.Property(u => u.Name)
+                .HasMaxLength(150)
+                .IsRequired();
 
             builder.Property(u => u.Email)
-                .IsRequired()
-                .HasMaxLength(150);
+                .HasMaxLength(200)
+                .IsRequired();
 
-            builder.HasIndex(u => u.Email)
-                .IsUnique();
-
-            builder.Property(u => u.PasswordHash)
-                .IsRequired()
-                .HasMaxLength(255);
+            builder.Property(u => u.Password)
+                .HasMaxLength(500)
+                .IsRequired();
 
             builder.Property(u => u.Role)
                 .IsRequired();
 
             builder.Property(u => u.CreatedAt)
                 .IsRequired();
+
+            builder.Property(u => u.IsActive)
+                .IsRequired();
+
+            builder.HasIndex(u => u.Email)
+                .IsUnique();
         }
     }
 }

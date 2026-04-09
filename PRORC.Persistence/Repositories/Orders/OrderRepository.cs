@@ -1,86 +1,80 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PRORC.Domain.Entities.Orders;
 using PRORC.Domain.Enums;
 using PRORC.Domain.Interfaces.Repositories;
 using PRORC.Persistence.Base;
 using PRORC.Persistence.Context;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRORC.Persistence.Repositories.Orders
 {
-    public class OrderRepository : BaseRepository<Order, int>, IOrderRepository
+    public class OrderRepository : BaseRepository<Order>, IOrderRepository
     {
-        public OrderRepository(PRORCContext context) : base(context) { }
+        public OrderRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
-        public async Task<Order?> GetByIdWithItemsAsync(int id)
+        public async Task<IEnumerable<Order>> GetByUserIdAsync(int userId)
         {
-            return await _dbSet
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == id);
+            try
+            {
+                return await _context.Orders
+                    .AsNoTracking()
+                    .Where(o => o.UserId == userId)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting orders by UserId {UserId}.", userId);
+                throw;
+            }
         }
 
-        public async Task<List<Order>> GetOrdersByUserAsync(int userId)
+        public async Task<Order?> GetByReservationIdAsync(int reservationId)
         {
-            return await _dbSet
-                .Where(o => o.UserId == userId)
-                .Include(o => o.OrderItems)
-                .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
+            try
+            {
+                return await _context.Orders
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(o => o.ReservationId == reservationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order by ReservationId {ReservationId}.", reservationId);
+                throw;
+            }
         }
 
-        public async Task<List<Order>> GetOrdersByRestaurantAsync(int restaurantId)
+        public async Task<IEnumerable<Order>> GetByStatusAsync(OrderStatus status)
         {
-            return await _dbSet
-                .Where(o => o.RestaurantId == restaurantId)
-                .Include(o => o.OrderItems)
-                .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
+            try
+            {
+                return await _context.Orders
+                    .AsNoTracking()
+                    .Where(o => o.Status == status)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting orders by Status {Status}.", status);
+                throw;
+            }
         }
 
-        public async Task<List<Order>> GetOrdersByStatusAsync(OrderStatusEnum status)
+        public async Task<IEnumerable<OrderItem>> GetItemsByOrderIdAsync(int orderId)
         {
-            return await _dbSet
-                .Where(o => o.Status == status)
-                .Include(o => o.OrderItems)
-                .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
-        }
-
-        public async Task<List<Order>> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            return await _dbSet
-                .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
-                .Include(o => o.OrderItems)
-                .OrderByDescending(o => o.OrderDate)
-                .ToListAsync();
-        }
-
-        public async Task<List<Order>> GetLatestOrdersByUserAsync(int userId, int count)
-        {
-            return await _dbSet
-                .Where(o => o.UserId == userId)
-                .Include(o => o.OrderItems)
-                .OrderByDescending(o => o.OrderDate)
-                .Take(count)
-                .ToListAsync();
-        }
-
-        public async Task<Order?> GetOrderWithItemsByUserAsync(int orderId, int userId)
-        {
-            return await _dbSet
-                .Where(o => o.Id == orderId && o.UserId == userId)
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync();
-        }
-
-        public async Task<bool> ExistsOrderForUserAsync(int orderId, int userId)
-        {
-            return await _dbSet
-                .AnyAsync(o => o.Id == orderId && o.UserId == userId);
+            try
+            {
+                return await _context.OrderItems
+                    .AsNoTracking()
+                    .Where(oi => oi.OrderId == orderId)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order items by OrderId {OrderId}.", orderId);
+                throw;
+            }
         }
     }
 }

@@ -10,27 +10,32 @@ namespace PRORC.Persistence.Configurations
         {
             builder.ToTable("MenuItems");
 
-            builder.HasKey(i => i.Id);
+            builder.HasKey(mi => mi.Id);
 
-            builder.Property(i => i.Id)
+            builder.Property(mi => mi.Id)
                 .ValueGeneratedOnAdd();
 
-            builder.Property(i => i.MenuId)
+            builder.Property(mi => mi.MenuId)
                 .IsRequired();
 
-            builder.Property(i => i.Name)
-                .IsRequired()
-                .HasMaxLength(120);
+            builder.Property(mi => mi.Name)
+                .HasMaxLength(150)
+                .IsRequired();
 
-            builder.Property(i => i.Description)
+            builder.Property(mi => mi.Description)
                 .HasMaxLength(500);
 
-            builder.Property(i => i.Price)
-                .IsRequired()
-                .HasColumnType("decimal(18,2)");
-
-            builder.Property(i => i.IsAvailable)
+            builder.Property(mi => mi.Price)
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
+
+            builder.Property(mi => mi.IsAvailable)
+                .IsRequired();
+
+            builder.HasOne<Menu>()
+                .WithMany()
+                .HasForeignKey(mi => mi.MenuId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
