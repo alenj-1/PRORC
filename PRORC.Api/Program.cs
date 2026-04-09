@@ -17,10 +17,7 @@ namespace PRORC.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddApplication();
-<<<<<<< HEAD
             builder.Services.AddInfrastructure();
-=======
->>>>>>> aff4404 (Arreglado el error tipográfico)
             builder.Services.AddPersistence(builder.Configuration);
 
             var app = builder.Build();
