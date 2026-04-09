@@ -8,5 +8,7 @@ namespace PRORC.Domain.Interfaces.Repositories
         Task<Menu?> GetActiveByRestaurantIdAsync(int restaurantId);
         Task<IEnumerable<MenuItem>> GetItemsByMenuIdAsync(int menuId);
         Task<MenuItem?> GetMenuItemByIdAsync(int menuItemId);
+        Task<MenuItem> AddMenuItemAsync(MenuItem item);
+        Task UpdateMenuItemAsync(MenuItem item);
     }
 }

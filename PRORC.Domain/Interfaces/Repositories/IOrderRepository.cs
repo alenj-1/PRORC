@@ -9,5 +9,6 @@ namespace PRORC.Domain.Interfaces.Repositories
         Task<Order?> GetByReservationIdAsync(int reservationId);
         Task<IEnumerable<Order>> GetByStatusAsync(OrderStatus status);
         Task<IEnumerable<OrderItem>> GetItemsByOrderIdAsync(int orderId);
+        Task<OrderItem> AddOrderItemAsync(OrderItem item);
     }
 }
