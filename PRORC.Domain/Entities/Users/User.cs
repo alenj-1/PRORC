@@ -40,13 +40,20 @@ namespace PRORC.Domain.Entities.Users
             };
         }
 
-
         public void Deactivate()
         {
             if (!IsActive)
                 throw new InvalidOperationException("User has already been deactivated.");
 
             IsActive = false;
+        }
+
+        public void Activate()
+        {
+            if (IsActive)
+                throw new InvalidOperationException("User is already active.");
+
+            IsActive = true;
         }
 
 
