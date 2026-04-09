@@ -1,75 +1,92 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PRORC.Domain.Entities.Reviews;
 using PRORC.Domain.Interfaces.Repositories;
 using PRORC.Persistence.Base;
 using PRORC.Persistence.Context;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRORC.Persistence.Repositories.Reviews
 {
-    public class ReviewRepository : BaseRepository<Review, int>, IReviewRepository
+    public class ReviewRepository : BaseRepository<Review>, IReviewRepository
     {
-        public ReviewRepository(PRORCContext context) : base(context) { }
+        public ReviewRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
-        public async Task<List<Review>> GetReviewsByRestaurantAsync(int restaurantId)
+        public async Task<IEnumerable<Review>> GetByRestaurantIdAsync(int restaurantId)
         {
-            return await _dbSet
-                .Where(r => r.RestaurantId == restaurantId)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
+            try
+            {
+                return await _context.Reviews
+                    .AsNoTracking()
+                    .Where(r => r.RestaurantId == restaurantId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reviews by RestaurantId {RestaurantId}.", restaurantId);
+                throw;
+            }
         }
 
-        public async Task<List<Review>> GetReviewsByUserAsync(int userId)
+        public async Task<IEnumerable<Review>> GetByUserIdAsync(int userId)
         {
-            return await _dbSet
-                .Where(r => r.UserId == userId)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
+            try
+            {
+                return await _context.Reviews
+                    .AsNoTracking()
+                    .Where(r => r.UserId == userId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reviews by UserId {UserId}.", userId);
+                throw;
+            }
         }
 
-        public async Task<double> GetAverageRatingAsync(int restaurantId)
+        public async Task<Review?> GetByReservationIdAsync(int reservationId)
         {
-            var hasReviews = await _dbSet.AnyAsync(r => r.RestaurantId == restaurantId);
-
-            if (!hasReviews)
-                return 0;
-
-            return await _dbSet
-                .Where(r => r.RestaurantId == restaurantId)
-                .AverageAsync(r => r.Rating);
+            try
+            {
+                return await _context.Reviews
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting review by ReservationId {ReservationId}.", reservationId);
+                throw;
+            }
         }
 
-        public async Task<bool> ExistsReviewByUserForRestaurantAsync(int userId, int restaurantId)
+        public async Task<double> GetAverageRatingByRestaurantIdAsync(int restaurantId)
         {
-            return await _dbSet
-                .AnyAsync(r => r.UserId == userId && r.RestaurantId == restaurantId);
-        }
+            try
+            {
+                // Busca si el restaurante tiene reseñas
+                var hasReviews = await _context.Reviews
+                    .AnyAsync(r => r.RestaurantId == restaurantId);
 
-        public async Task<List<Review>> GetLatestReviewsByRestaurantAsync(int restaurantId, int count)
-        {
-            return await _dbSet
-                .Where(r => r.RestaurantId == restaurantId)
-                .OrderByDescending(r => r.CreatedAt)
-                .Take(count)
-                .ToListAsync();
-        }
+                // Si no tiene reseñas, devuelve 0
+                if (!hasReviews)
+                {
+                    return 0;
+                }
 
-        public async Task<List<Review>> GetReviewsByRatingAsync(int restaurantId, int rating)
-        {
-            return await _dbSet
-                .Where(r => r.RestaurantId == restaurantId && r.Rating == rating)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
-        }
+                // Calcula el promedio de la columna Rating
+                var average = await _context.Reviews
+                    .Where(r => r.RestaurantId == restaurantId)
+                    .AverageAsync(r => r.Rating);
 
-        public async Task<int> CountReviewsByRestaurantAsync(int restaurantId)
-        {
-            return await _dbSet
-                .CountAsync(r => r.RestaurantId == restaurantId);
+                // Redondea a 2 decimales para que quede más limpio
+                return Math.Round(average, 2);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating average rating for RestaurantId {RestaurantId}.", restaurantId);
+                throw;
+            }
         }
     }
 }

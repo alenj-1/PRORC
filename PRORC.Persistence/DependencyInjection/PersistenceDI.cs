@@ -12,25 +12,37 @@ using PRORC.Persistence.Repositories.Restaurants;
 using PRORC.Persistence.Repositories.Reviews;
 using PRORC.Persistence.Repositories.Users;
 
-namespace PRORC.Persistence.DependencyInjection;
-
-public static class PersistenceDI
+namespace PRORC.Persistence.DependencyInjection
 {
-    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    public static class PersistenceDI
     {
-        services.AddDbContext<PRORCContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
-            b => b.MigrationsAssembly("PRORC.Persistence")));
+        public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+        {
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<IMenuRepository, MenuRepository>();
-        services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddScoped<IOrderRepository, OrderRepository>();
-        services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IReservationRepository, ReservationRepository>();
-        services.AddScoped<IRestaurantRepository, RestaurantRepository>();
-        services.AddScoped<IReviewRepository, ReviewRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
+            }
 
-        return services;
+            // Registro de DbContext con SQL Server
+            services.AddDbContext<PRORCContext>(options =>
+            {
+                options.UseSqlServer(connectionString);
+                options.EnableDetailedErrors();
+            });
+
+            // Registro de cada repositorio con su interfaz
+            services.AddScoped<IMenuRepository, MenuRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IReservationRepository, ReservationRepository>();
+            services.AddScoped<IRestaurantRepository, RestaurantRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            return services;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PRORC.Domain.Entities.Restaurants;
+using PRORC.Domain.Entities.Users;
 
 namespace PRORC.Persistence.Configurations
 {
@@ -15,25 +16,34 @@ namespace PRORC.Persistence.Configurations
             builder.Property(r => r.Id)
                 .ValueGeneratedOnAdd();
 
-            builder.Property(r => r.Name)
-                .IsRequired()
-                .HasMaxLength(150);
+            builder.Property(r => r.OwnerId)
+                .IsRequired();
 
-            builder.Property(r => r.Address)
-                .IsRequired()
-                .HasMaxLength(250);
+            builder.Property(r => r.Name)
+                .HasMaxLength(150)
+                .IsRequired();
 
             builder.Property(r => r.CuisineType)
-                .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .IsRequired();
+
+            builder.Property(r => r.Address)
+                .HasMaxLength(250)
+                .IsRequired();
+
+            builder.Property(r => r.Description)
+                .HasMaxLength(500);
+
+            builder.Property(r => r.Rating)
+                .IsRequired();
 
             builder.Property(r => r.IsActive)
                 .IsRequired();
 
-            builder.HasMany(r => r.Availabilities)
-                .WithOne(a => a.Restaurant)
-                .HasForeignKey(a => a.RestaurantId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(r => r.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

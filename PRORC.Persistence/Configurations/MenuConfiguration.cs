@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PRORC.Domain.Entities.Menus;
+using PRORC.Domain.Entities.Restaurants;
 
 namespace PRORC.Persistence.Configurations
 {
@@ -19,12 +20,15 @@ namespace PRORC.Persistence.Configurations
                 .IsRequired();
 
             builder.Property(m => m.Name)
-                .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(150)
+                .IsRequired();
 
-            builder.HasMany(m => m.Items)
-                .WithOne(i => i.Menu)
-                .HasForeignKey(i => i.MenuId)
+            builder.Property(m => m.IsActive)
+                .IsRequired();
+
+            builder.HasOne<Restaurant>()
+                .WithMany()
+                .HasForeignKey(m => m.RestaurantId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

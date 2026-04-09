@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PRORC.Domain.Entities.Reservations;
 using PRORC.Domain.Enums;
 using PRORC.Domain.Interfaces.Repositories;
@@ -7,73 +8,77 @@ using PRORC.Persistence.Context;
 
 namespace PRORC.Persistence.Repositories.Reservations
 {
-    public class ReservationRepository : BaseRepository<Reservation, int>, IReservationRepository
+    public class ReservationRepository : BaseRepository<Reservation>, IReservationRepository
     {
-        public ReservationRepository(PRORCContext context) : base(context) { }
+        public ReservationRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
-        public async Task<List<Reservation>> GetReservationsByUserAsync(int userId)
+        public async Task<IEnumerable<Reservation>> GetByUserIdAsync(int userId)
         {
-            return await _dbSet
-                .Where(r => r.UserId == userId)
-                .OrderByDescending(r => r.ReservationDate)
-                .ToListAsync();
+            try
+            {
+                return await _context.Reservations
+                    .AsNoTracking()
+                    .Where(r => r.UserId == userId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reservations by UserId {UserId}.", userId);
+                throw;
+            }
         }
 
-        public async Task<List<Reservation>> GetReservationsByRestaurantAsync(int restaurantId)
+        public async Task<IEnumerable<Reservation>> GetByRestaurantIdAsync(int restaurantId)
         {
-            return await _dbSet
-                .Where(r => r.RestaurantId == restaurantId)
-                .OrderByDescending(r => r.ReservationDate)
-                .ToListAsync();
+            try
+            {
+                return await _context.Reservations
+                    .AsNoTracking()
+                    .Where(r => r.RestaurantId == restaurantId)
+                    .OrderByDescending(r => r.ReservationDate)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reservations by RestaurantId {RestaurantId}.", restaurantId);
+                throw;
+            }
         }
 
-        public async Task<bool> HasReservationConflictAsync(int restaurantId, DateTime reservationDate)
+        public async Task<IEnumerable<Reservation>> GetByDateAsync(int restaurantId, DateTime reservationDate)
         {
-            return await _dbSet
-                .AnyAsync(r => r.RestaurantId == restaurantId &&
-                               r.ReservationDate == reservationDate);
+            try
+            {
+                var onlyDate = reservationDate.Date;
+
+                return await _context.Reservations
+                    .AsNoTracking()
+                    .Where(r => r.RestaurantId == restaurantId && r.ReservationDate.Date == onlyDate)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reservations by RestaurantId {RestaurantId} and date {ReservationDate}.", restaurantId, reservationDate);
+                throw;
+            }
         }
 
-        public async Task<List<Reservation>> GetReservationsByStatusAsync(ReservationStatusEnum status)
+        public async Task<IEnumerable<Reservation>> GetByStatusAsync(ReservationStatus status)
         {
-            return await _dbSet
-                .Where(r => r.Status == status)
-                .OrderByDescending(r => r.ReservationDate)
-                .ToListAsync();
-        }
-
-        public async Task<List<Reservation>> GetReservationsByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            return await _dbSet
-                .Where(r => r.ReservationDate >= startDate && r.ReservationDate <= endDate)
-                .OrderByDescending(r => r.ReservationDate)
-                .ToListAsync();
-        }
-
-        public async Task<List<Reservation>> GetUpcomingReservationsByUserAsync(int userId)
-        {
-            var now = DateTime.Now;
-
-            return await _dbSet
-                .Where(r => r.UserId == userId && r.ReservationDate >= now)
-                .OrderBy(r => r.ReservationDate)
-                .ToListAsync();
-        }
-
-        public async Task<List<Reservation>> GetUpcomingReservationsByRestaurantAsync(int restaurantId)
-        {
-            var now = DateTime.Now;
-
-            return await _dbSet
-                .Where(r => r.RestaurantId == restaurantId && r.ReservationDate >= now)
-                .OrderBy(r => r.ReservationDate)
-                .ToListAsync();
-        }
-
-        public async Task<bool> ExistsReservationForUserAsync(int reservationId, int userId)
-        {
-            return await _dbSet
-                .AnyAsync(r => r.Id == reservationId && r.UserId == userId);
+            try
+            {
+                return await _context.Reservations
+                    .AsNoTracking()
+                    .Where(r => r.Status == status)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reservations by Status {Status}.", status);
+                throw;
+            }
         }
     }
 }

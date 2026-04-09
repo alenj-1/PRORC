@@ -1,75 +1,124 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PRORC.Domain.Interfaces.Repositories;
+using Microsoft.Extensions.Logging;
 using PRORC.Persistence.Context;
-using System.Linq.Expressions;
 
 namespace PRORC.Persistence.Base
 {
-    public abstract class BaseRepository<TEntity, TKey> : IBaseRepository<TEntity, TKey> where TEntity : class
+    public class BaseRepository<TEntity> where TEntity : class
     {
         protected readonly PRORCContext _context;
         protected readonly DbSet<TEntity> _dbSet;
+        protected readonly ILogger _logger;
 
-        protected BaseRepository(PRORCContext context)
+        public BaseRepository(PRORCContext context, ILoggerFactory loggerFactory)
         {
             _context = context;
             _dbSet = _context.Set<TEntity>();
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
-        public virtual async Task<List<TEntity>> GetAllAsync()
+        // Método para obtener una entidad por su Id
+        public virtual async Task<TEntity?> GetByIdAsync(int id)
         {
-            return await _dbSet.AsNoTracking().ToListAsync();
+            try
+            {
+                return await _dbSet.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting {EntityName} with Id {Id}.", typeof(TEntity).Name, id);
+                throw;
+            }
         }
 
-        public virtual async Task<TEntity?> GetByIdAsync(TKey id)
+        // Método para obtener todas las entidades
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
-            return await _dbSet.FindAsync(id);
+            try
+            {
+                return await _dbSet.AsNoTracking().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all records of {EntityName}.", typeof(TEntity).Name);
+                throw;
+            }
         }
 
-        public virtual async Task AddAsync(TEntity entity)
+        // Método para agregar una nueva entidad
+        public virtual async Task<TEntity> AddAsync(TEntity entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _dbSet.AddAsync(entity);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("{EntityName} added successfully.", typeof(TEntity).Name);
+
+                return entity;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while adding {EntityName}.", typeof(TEntity).Name);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding {EntityName}.", typeof(TEntity).Name);
+                throw;
+            }
         }
 
+        // Método para actualizar una entidad
         public virtual async Task UpdateAsync(TEntity entity)
         {
-            _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _dbSet.Update(entity);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("{EntityName} updated successfully.", typeof(TEntity).Name);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating {EntityName}.", typeof(TEntity).Name);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating {EntityName}.", typeof(TEntity).Name);
+                throw;
+            }
         }
 
-        public virtual async Task DeleteEntityAsync(TEntity entity)
+        // Método para eliminar una entidad por Id
+        public virtual async Task DeleteAsync(int id)
         {
-            _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
-        }
+            try
+            {
+                var entity = await _dbSet.FindAsync(id);
 
-        public virtual async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> filter)
-        {
-            return await _dbSet.AnyAsync(filter);
-        }
+                if (entity == null)
+                {
+                    _logger.LogWarning("{EntityName} with Id {Id} was not found for deletion.", typeof(TEntity).Name, id);
+                    throw new KeyNotFoundException($"{typeof(TEntity).Name} with Id {id} was not found.");
+                }
 
-        public virtual async Task<List<TEntity>> FindAsync(Expression<Func<TEntity, bool>> filter)
-        {
-            return await _dbSet
-                .AsNoTracking()
-                .Where(filter)
-                .ToListAsync();
-        }
+                _dbSet.Remove(entity);
+                await _context.SaveChangesAsync();
 
-        public virtual async Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> filter)
-        {
-            return await _dbSet
-                .AsNoTracking()
-                .FirstOrDefaultAsync(filter);
-        }
-
-        public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>>? filter = null)
-        {
-            if (filter is null)
-                return await _dbSet.CountAsync();
-
-            return await _dbSet.CountAsync(filter);
+                _logger.LogInformation("{EntityName} with Id {Id} deleted successfully.", typeof(TEntity).Name, id);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while deleting {EntityName} with Id {Id}.", typeof(TEntity).Name, id);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while deleting {EntityName} with Id {Id}.", typeof(TEntity).Name, id);
+                throw;
+            }
         }
     }
 }

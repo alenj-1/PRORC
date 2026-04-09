@@ -1,69 +1,62 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PRORC.Domain.Entities.Notifications;
 using PRORC.Domain.Interfaces.Repositories;
 using PRORC.Persistence.Base;
 using PRORC.Persistence.Context;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRORC.Persistence.Repositories.Notifications
 {
-    public class NotificationRepository : BaseRepository<Notification, int>, INotificationRepository
+    public class NotificationRepository : BaseRepository<Notification>, INotificationRepository
     {
-        public NotificationRepository(PRORCContext context) : base(context) { }
+        public NotificationRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
-        public async Task<List<Notification>> GetNotificationsByUserAsync(int userId)
+        public async Task<IEnumerable<Notification>> GetByUserIdAsync(int userId)
         {
-            return await _dbSet
-                .Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            try
+            {
+                return await _context.Notifications
+                    .AsNoTracking()
+                    .Where(n => n.UserId == userId)
+                    .OrderByDescending(n => n.SentAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting notifications by UserId {UserId}.", userId);
+                throw;
+            }
         }
 
-        public async Task<List<Notification>> GetUnreadNotificationsAsync(int userId)
+        public async Task<IEnumerable<Notification>> GetUnreadByUserIdAsync(int userId)
         {
-            return await _dbSet
-                .Where(n => n.UserId == userId && !n.IsRead)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            try
+            {
+                return await _context.Notifications
+                    .AsNoTracking()
+                    .Where(n => n.UserId == userId && !n.Read)
+                    .OrderByDescending(n => n.SentAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting unread notifications by UserId {UserId}.", userId);
+                throw;
+            }
         }
 
-        public async Task<List<Notification>> GetReadNotificationsAsync(int userId)
+        public async Task<int> CountUnreadByUserIdAsync(int userId)
         {
-            return await _dbSet
-                .Where(n => n.UserId == userId && n.IsRead)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task<int> CountUnreadNotificationsAsync(int userId)
-        {
-            return await _dbSet
-                .CountAsync(n => n.UserId == userId && !n.IsRead);
-        }
-
-        public async Task<List<Notification>> GetLatestNotificationsAsync(int userId, int count)
-        {
-            return await _dbSet
-                .Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedAt)
-                .Take(count)
-                .ToListAsync();
-        }
-
-        public async Task MarkAsReadAsync(int notificationId)
-        {
-            var notification = await _dbSet.FirstOrDefaultAsync(n => n.Id == notificationId);
-
-            if (notification is null)
-                return;
-
-            notification.IsRead = true;
-            _dbSet.Update(notification);
-            await _context.SaveChangesAsync();
+            try
+            {
+                return await _context.Notifications
+                    .CountAsync(n => n.UserId == userId && !n.Read);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting unread notifications by UserId {UserId}.", userId);
+                throw;
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PRORC.Domain.Entities.Orders;
+using PRORC.Domain.Entities.Reservations;
+using PRORC.Domain.Entities.Users;
 
 namespace PRORC.Persistence.Configurations
 {
@@ -18,23 +20,28 @@ namespace PRORC.Persistence.Configurations
             builder.Property(o => o.UserId)
                 .IsRequired();
 
-            builder.Property(o => o.RestaurantId)
-                .IsRequired();
-
-            builder.Property(o => o.OrderDate)
+            builder.Property(o => o.ReservationId)
                 .IsRequired();
 
             builder.Property(o => o.TotalAmount)
-                .IsRequired()
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
 
             builder.Property(o => o.Status)
                 .IsRequired();
 
-            builder.HasMany(o => o.OrderItems)
-                .WithOne(oi => oi.Order)
-                .HasForeignKey(oi => oi.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Property(o => o.CreatedAt)
+                .IsRequired();
+
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne<Reservation>()
+                .WithMany()
+                .HasForeignKey(o => o.ReservationId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

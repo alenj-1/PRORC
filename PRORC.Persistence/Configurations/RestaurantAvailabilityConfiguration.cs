@@ -10,25 +10,30 @@ namespace PRORC.Persistence.Configurations
         {
             builder.ToTable("RestaurantAvailabilities");
 
-            builder.HasKey(a => a.Id);
+            builder.HasKey(ra => ra.Id);
 
-            builder.Property(a => a.Id)
+            builder.Property(ra => ra.Id)
                 .ValueGeneratedOnAdd();
 
-            builder.Property(a => a.RestaurantId)
+            builder.Property(ra => ra.RestaurantId)
                 .IsRequired();
 
-            builder.Property(a => a.AvailableDate)
+            builder.Property(ra => ra.AvailableDate)
                 .IsRequired();
 
-            builder.Property(a => a.StartTime)
+            builder.Property(ra => ra.StartTime)
                 .IsRequired();
 
-            builder.Property(a => a.EndTime)
+            builder.Property(ra => ra.EndTime)
                 .IsRequired();
 
-            builder.Property(a => a.AvailableTables)
+            builder.Property(ra => ra.AvailableTables)
                 .IsRequired();
+
+            builder.HasOne<Restaurant>()
+                .WithMany()
+                .HasForeignKey(ra => ra.RestaurantId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
