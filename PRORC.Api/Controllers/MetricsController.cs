@@ -4,7 +4,7 @@ using PRORC.Application.Interfaces;
 namespace PRORC.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/metrics")]
 
     public class MetricsController : ControllerBase
     {
@@ -15,10 +15,12 @@ namespace PRORC.Api.Controllers
             _metricsService = metricsService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetSummaryDTO()
+
+        // GET que permite obtener el resumen de métricas de un restaurante
+        [HttpGet("restaurant/{restaurantId:int}")]
+        public async Task<IActionResult> GetRestaurantSummary(int restaurantId)
         {
-            var result = await _metricsService.GetSummaryDTOAsync();
+            var result = await _metricsService.GetRestaurantSummaryAsync(restaurantId);
             return Ok(result);
         }
     }

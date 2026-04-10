@@ -5,7 +5,7 @@
   <Folder Name="/Apps/">
     <Project Path="PRORC.Desktop/PRORC.Desktop.csproj" />
     <Project Path="PRORC.Web/PRORC.Web.esproj">
-      <Build />
+      <Build Solution="Release|*" />
       <Deploy />
     </Project>
   </Folder>
