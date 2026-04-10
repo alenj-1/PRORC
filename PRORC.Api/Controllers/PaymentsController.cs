@@ -5,7 +5,7 @@ using PRORC.Application.Interfaces;
 namespace PRORC.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/payments")]
 
     public class PaymentsController : ControllerBase
     {
@@ -16,43 +16,53 @@ namespace PRORC.Api.Controllers
             _paymentService = paymentService;
         }
 
-        [HttpGet("order/{orderId:int}")]
+
+        // POST que permite crear un pago para una orden
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] PaymentRequest request)
+        {
+            var result = await _paymentService.CreatePaymentAsync(request);
+            return Ok(result);
+        }
+
+
+        // GET que permite buscar el pago asociado a una orden
+        [HttpGet("by-order/{orderId:int}")]
         public async Task<IActionResult> GetByOrderId(int orderId)
         {
             var result = await _paymentService.GetByOrderIdAsync(orderId);
 
-            if (result is null)
-                return NotFound(new { message = "No payment method found for this order." });
+            if (result == null)
+                return NotFound(new { message = "Payment not found for that order." });
 
             return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] PaymentRequest request)
+
+        // PATCH que permite autorizar un pago
+        [HttpPatch("{paymentId:int}/authorize")]
+        public async Task<IActionResult> Authorize(int paymentId)
         {
-            try
-            {
-                var result = await _paymentService.CreateAsync(request);
-                return Ok(result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _paymentService.AuthorizePaymentAsync(paymentId);
+            return Ok(result);
         }
 
-        [HttpPut("{orderId:int}/authorize")]
-        public async Task<IActionResult> Authorize(int orderId, [FromQuery] string transactionReference)
+
+        // PATCH que permite rechazar un pago
+        [HttpPatch("{paymentId:int}/reject")]
+        public async Task<IActionResult> Reject(int paymentId)
         {
-            try
-            {
-                await _paymentService.AuthorizeAsync(orderId, transactionReference);
-                return Ok(new { message = "Payment successfully authorized." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            await _paymentService.RejectPaymentAsync(paymentId);
+            return Ok(new { message = "Payment rejected successfully." });
+        }
+
+
+        // PATCH que permite reembolsar un pago
+        [HttpPatch("{paymentId:int}/refund")]
+        public async Task<IActionResult> Refund(int paymentId)
+        {
+            await _paymentService.RefundPaymentAsync(paymentId);
+            return Ok(new { message = "Payment refunded successfully." });
         }
     }
 }

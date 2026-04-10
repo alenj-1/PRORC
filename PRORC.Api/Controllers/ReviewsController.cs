@@ -5,7 +5,7 @@ using PRORC.Application.Interfaces;
 namespace PRORC.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/reviews")]
 
     public class ReviewsController : ControllerBase
     {
@@ -16,39 +16,31 @@ namespace PRORC.Api.Controllers
             _reviewService = reviewService;
         }
 
-        [HttpGet("restaurant/{restaurantId:int}")]
-        public async Task<IActionResult> GetByRestaurant(int restaurantId)
-        {
-            var result = await _reviewService.GetByRestaurantAsync(restaurantId);
-            return Ok(result);
-        }
 
-        [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetByUser(int userId)
-        {
-            var result = await _reviewService.GetByUserAsync(userId);
-            return Ok(result);
-        }
-
-        [HttpGet("restaurant/{restaurantId:int}/average")]
-        public async Task<IActionResult> GetAverageRating(int restaurantId)
-        {
-            var result = await _reviewService.GetAverageRatingAsync(restaurantId);
-            return Ok(new { restaurantId, averageRating = result });
-        }
-
+        // POST que permite crear una reseña
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateReviewRequest request)
         {
-            try
-            {
-                var result = await _reviewService.CreateAsync(request);
-                return Ok(result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _reviewService.CreateReviewAsync(request);
+            return Ok(result);
+        }
+
+
+        // GET que permite obtener reseñas por restaurante
+        [HttpGet("restaurant/{restaurantId:int}")]
+        public async Task<IActionResult> GetByRestaurantId(int restaurantId)
+        {
+            var result = await _reviewService.GetByRestaurantIdAsync(restaurantId);
+            return Ok(result);
+        }
+
+
+        // GET que permite obtener reseñas por usuario
+        [HttpGet("user/{userId:int}")]
+        public async Task<IActionResult> GetByUserId(int userId)
+        {
+            var result = await _reviewService.GetByUserIdAsync(userId);
+            return Ok(result);
         }
     }
 }

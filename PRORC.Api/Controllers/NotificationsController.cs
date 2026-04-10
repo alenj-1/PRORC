@@ -4,7 +4,7 @@ using PRORC.Application.Interfaces;
 namespace PRORC.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/notifications")]
 
     public class NotificationsController : ControllerBase
     {
@@ -15,32 +15,48 @@ namespace PRORC.Api.Controllers
             _notificationService = notificationService;
         }
 
+
+        // POST que permite crear y enviar una notificación
+        [HttpPost]
+        public async Task<IActionResult> CreateAndSend([FromBody] CreateNotificationApiRequest request)
+        {
+            var result = await _notificationService.CreateAndSendAsync(request.UserId, request.Message, request.Type);
+            return Ok(result);
+        }
+
+
+        // GET que permite obtener todas las notificaciones de un usuario
         [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetByUser(int userId)
+        public async Task<IActionResult> GetByUserId(int userId)
         {
-            var result = await _notificationService.GetByUserAsync(userId);
+            var result = await _notificationService.GetByUserIdAsync(userId);
             return Ok(result);
         }
 
+
+        // GET que permite obtener las notificaciones no leídas de un usuario
         [HttpGet("user/{userId:int}/unread")]
-        public async Task<IActionResult> GetUnreadByUser(int userId)
+        public async Task<IActionResult> GetUnreadByUserId(int userId)
         {
-            var result = await _notificationService.GetUnreadByUserAsync(userId);
+            var result = await _notificationService.GetUnreadByUserIdAsync(userId);
             return Ok(result);
         }
 
-        [HttpGet("user/{userId:int}/unread/count")]
-        public async Task<IActionResult> CountUnread(int userId)
+        // PATCH que permite marcar una notificación como leída
+        [HttpPatch("{notificationId:int}/read")]
+        public async Task<IActionResult> MarkAsRead(int notificationId)
         {
-            var result = await _notificationService.CountUnreadAsync(userId);
-            return Ok(new { userId, unreadCount = result });
+            await _notificationService.MarkAsReadAsync(notificationId);
+            return Ok(new { message = "Notification marked as read." });
         }
 
-        [HttpPut("{id:int}/read")]
-        public async Task<IActionResult> MarkAsRead(int id)
+
+        // Clase simple
+        public class CreateNotificationApiRequest
         {
-            await _notificationService.MarkAsReadAsync(id);
-            return Ok(new { message = "Notification marked as read." });
+            public int UserId { get; set; }
+            public string Message { get; set; } = string.Empty;
+            public string Type { get; set; } = string.Empty;
         }
     }
 }
