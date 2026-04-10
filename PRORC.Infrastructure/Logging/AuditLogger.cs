@@ -1,10 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using PRORC.Domain.Interfaces.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRORC.Infrastructure.Logging
 {
@@ -17,14 +12,27 @@ namespace PRORC.Infrastructure.Logging
             _logger = logger;
         }
 
-        public Task LogAsync(string action, string details)
+        // Registra una acción importante del sistema
+        public async Task LogAsync(int? userId, string action, string entityName, int entityId, string details)
         {
-            _logger.LogInformation("AUDIT | Action: {Action} | Details: {Details} | Timestamp: {Timestamp}",
-            action,
-            details,
-            DateTime.UtcNow);
+            try
+            {
+                // Simula async para mantener consistencia con la interfaz
+                await Task.CompletedTask;
 
-            return Task.CompletedTask;
+                _logger.LogInformation(
+                    "AUDIT LOG | UserId: {UserId}, Action: {Action}, Entity: {EntityName}, EntityId: {EntityId}, Details: {Details}",
+                    userId,
+                    action,
+                    entityName,
+                    entityId,
+                    details);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while writing audit log.");
+                throw;
+            }
         }
     }
 }
