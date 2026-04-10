@@ -12,6 +12,8 @@ namespace PRORC.Persistence.Repositories.Orders
     {
         public OrderRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
+
+        // Obtiene todas las órdenes de un usuario
         public async Task<IEnumerable<Order>> GetByUserIdAsync(int userId)
         {
             try
@@ -29,6 +31,7 @@ namespace PRORC.Persistence.Repositories.Orders
             }
         }
 
+        // Obtiene la orden asociada a una reserva
         public async Task<Order?> GetByReservationIdAsync(int reservationId)
         {
             try
@@ -44,6 +47,7 @@ namespace PRORC.Persistence.Repositories.Orders
             }
         }
 
+        // Obtiene órdenes por estado
         public async Task<IEnumerable<Order>> GetByStatusAsync(OrderStatus status)
         {
             try
@@ -61,6 +65,7 @@ namespace PRORC.Persistence.Repositories.Orders
             }
         }
 
+        // Obtiene los items de una orden
         public async Task<IEnumerable<OrderItem>> GetItemsByOrderIdAsync(int orderId)
         {
             try
@@ -73,6 +78,30 @@ namespace PRORC.Persistence.Repositories.Orders
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting order items by OrderId {OrderId}.", orderId);
+                throw;
+            }
+        }
+
+        // Agrega un nuevo item a una orden
+        public async Task<OrderItem> AddOrderItemAsync(OrderItem item)
+        {
+            try
+            {
+                await _context.OrderItems.AddAsync(item);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("OrderItem added successfully.");
+
+                return item;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while adding OrderItem.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding OrderItem.");
                 throw;
             }
         }

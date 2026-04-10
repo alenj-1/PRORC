@@ -11,6 +11,7 @@ namespace PRORC.Persistence.Repositories.Restaurants
     {
         public RestaurantRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
+        // Obtiene todos los restaurantes de un propietario
         public async Task<IEnumerable<Restaurant>> GetByOwnerIdAsync(int ownerId)
         {
             try
@@ -27,11 +28,12 @@ namespace PRORC.Persistence.Repositories.Restaurants
             }
         }
 
+        // Busca restaurantes activos por filtros opcionales
         public async Task<IEnumerable<Restaurant>> SearchAsync(string? cuisineType, string? address, double? minimumRating)
         {
             try
             {
-                // Empieza con una consulta base
+                // Empieza con una consulta base de restaurantes activos
                 var query = _context.Restaurants
                     .AsNoTracking()
                     .Where(r => r.IsActive)
@@ -67,6 +69,7 @@ namespace PRORC.Persistence.Repositories.Restaurants
             }
         }
 
+        // Obtiene todos los bloques de disponibilidad de un restaurante
         public async Task<IEnumerable<RestaurantAvailability>> GetAvailabilitiesByRestaurantIdAsync(int restaurantId)
         {
             try
@@ -85,6 +88,7 @@ namespace PRORC.Persistence.Repositories.Restaurants
             }
         }
 
+        // Busca el bloque de disponibilidad que corresponde a una fecha y hora
         public async Task<RestaurantAvailability?> GetAvailabilitySlotAsync(int restaurantId, DateTime availableDate, TimeSpan reservationTime)
         {
             try
@@ -101,6 +105,52 @@ namespace PRORC.Persistence.Repositories.Restaurants
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting availability slot for RestaurantId {RestaurantId}.", restaurantId);
+                throw;
+            }
+        }
+
+        // Agrega un nuevo bloque de disponibilidad
+        public async Task<RestaurantAvailability> AddAvailabilityAsync(RestaurantAvailability availability)
+        {
+            try
+            {
+                await _context.RestaurantAvailabilities.AddAsync(availability);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("RestaurantAvailability added successfully.");
+
+                return availability;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while adding RestaurantAvailability.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding RestaurantAvailability.");
+                throw;
+            }
+        }
+
+        // Actualiza un bloque de disponibilidad existente
+        public async Task UpdateAvailabilityAsync(RestaurantAvailability availability)
+        {
+            try
+            {
+                _context.RestaurantAvailabilities.Update(availability);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("RestaurantAvailability updated successfully.");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating RestaurantAvailability.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating RestaurantAvailability.");
                 throw;
             }
         }

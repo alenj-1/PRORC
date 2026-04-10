@@ -11,6 +11,7 @@ namespace PRORC.Persistence.Repositories.Menus
     {
         public MenuRepository(PRORCContext context, ILoggerFactory loggerFactory) : base(context, loggerFactory) { }
 
+        // Obtiene todos los menús que pertenecen a un restaurante
         public async Task<IEnumerable<Menu>> GetByRestaurantIdAsync(int restaurantId)
         {
             try
@@ -27,6 +28,7 @@ namespace PRORC.Persistence.Repositories.Menus
             }
         }
 
+        // Obtiene el menú activo de un restaurante
         public async Task<Menu?> GetActiveByRestaurantIdAsync(int restaurantId)
         {
             try
@@ -42,6 +44,7 @@ namespace PRORC.Persistence.Repositories.Menus
             }
         }
 
+        // Obtiene todos los items de un menú específico
         public async Task<IEnumerable<MenuItem>> GetItemsByMenuIdAsync(int menuId)
         {
             try
@@ -58,6 +61,7 @@ namespace PRORC.Persistence.Repositories.Menus
             }
         }
 
+        // Busca un item del menú por su Id
         public async Task<MenuItem?> GetMenuItemByIdAsync(int menuItemId)
         {
             try
@@ -69,6 +73,52 @@ namespace PRORC.Persistence.Repositories.Menus
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting MenuItem by Id {MenuItemId}.", menuItemId);
+                throw;
+            }
+        }
+
+        // Agrega un nuevo item a un menú
+        public async Task<MenuItem> AddMenuItemAsync(MenuItem item)
+        {
+            try
+            {
+                await _context.MenuItems.AddAsync(item);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("MenuItem added successfully.");
+
+                return item;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while adding MenuItem.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while adding MenuItem.");
+                throw;
+            }
+        }
+
+        // Actualiza un item del menú existente
+        public async Task UpdateMenuItemAsync(MenuItem item)
+        {
+            try
+            {
+                _context.MenuItems.Update(item);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("MenuItem updated successfully.");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error while updating MenuItem.");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while updating MenuItem.");
                 throw;
             }
         }
